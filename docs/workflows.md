@@ -8,32 +8,41 @@ Node chain:
 
 ```text
 Manual Trigger
-Campaign Config
+Lead Search Input
+Search CoreClaw Scrapers
+Select Google Maps Keyword Scraper
 Get Current Scraper Details
-Build Run Parameters
+Generate Campaign Config
 Start CoreClaw Run
 Wait/Get Status/If Succeeded/If Failed x 6
-Success: Get Results -> Summarize Results -> Export CSV -> Get Success Logs -> Build Success Summary
+Success: Get Results -> Summarize Results -> Export CSV -> Export JSON -> Get Success Logs -> Build Success Summary
 Failure: Get Failure Logs -> Build Failure Summary
 Timeout: Get Timeout Logs -> Build Timeout Summary
 ```
 
 What it does:
 
+- Searches the CoreClaw Store for the Google Maps keyword scraper.
+- Selects the target scraper from store search results by slug/title.
 - Reads the current scraper details before every run.
 - Uses the current `version` returned by CoreClaw instead of hardcoding a worker version.
-- Builds the Google Maps keyword input payload from **Campaign Config**.
+- Reads `parameters.custom` and `parameters.system` from Get Details.
+- Generates the Google Maps keyword campaign config from **Lead Search Input** plus the live scraper detail response.
 - Starts the scraper run.
 - Polls status up to six times.
 - Routes terminal status `3` to the success branch.
 - Routes terminal status `4` to the failure branch.
 - Routes non-terminal status after six attempts to the timeout branch.
-- Returns a compact summary with `run_slug`, result counts, first lead preview, CSV download URL, and logs URL.
+- Returns a compact summary with `run_slug`, result counts, first lead preview, CSV download URL, JSON download URL, and logs URL.
 
 Key config fields:
 
 | Field | Meaning |
 | --- | --- |
+| `store_search_query` | Search phrase used to find the scraper in CoreClaw Store |
+| `store_search_limit` | Maximum number of scraper store results to inspect |
+| `target_scraper_title` | Expected scraper title |
+| `target_scraper_slug` | Expected scraper slug used as the strongest selection signal |
 | `keyword` | Search phrase, for example `coffee shop` |
 | `base_location` | Search location, for example `New York, USA` |
 | `max_results` | Requested result count for the scraper |
@@ -64,9 +73,11 @@ Node chain:
 
 ```text
 Manual Trigger
-Campaign Config
+Lead Search Input
+Search CoreClaw Scrapers
+Select Google Maps Keyword Scraper
 Get Current Scraper Details
-Build Run Parameters
+Generate Campaign Config
 Start CoreClaw Run
 Build Starter Summary
 ```

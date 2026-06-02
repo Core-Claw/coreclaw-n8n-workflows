@@ -9,6 +9,7 @@ mkdirSync(workflowsDir, { recursive: true });
 
 const GOOGLE_MAPS_KEYWORD_SCRAPER = '01KPD6M5YQADCQKGVKPDZVYC63';
 const GOOGLE_MAPS_KEYWORD_NAME = 'Google Map Details By Keyword';
+const GOOGLE_MAPS_SEARCH_QUERY = 'Google Maps keyword';
 const MAX_POLL_ATTEMPTS = 6;
 
 function node({
@@ -65,16 +66,20 @@ function stickyNote({ id, name, position, width, height, content }) {
   });
 }
 
-function campaignConfigNode(position) {
+function leadSearchInputNode(position) {
   return node({
-    id: 'campaign-config',
-    name: 'Campaign Config',
+    id: 'lead-search-input',
+    name: 'Lead Search Input',
     type: 'n8n-nodes-base.set',
     typeVersion: 3.4,
     position,
     parameters: {
       assignments: {
         assignments: [
+          { id: 'store_search_query', name: 'store_search_query', value: GOOGLE_MAPS_SEARCH_QUERY, type: 'string' },
+          { id: 'store_search_limit', name: 'store_search_limit', value: 20, type: 'number' },
+          { id: 'target_scraper_title', name: 'target_scraper_title', value: GOOGLE_MAPS_KEYWORD_NAME, type: 'string' },
+          { id: 'target_scraper_slug', name: 'target_scraper_slug', value: GOOGLE_MAPS_KEYWORD_SCRAPER, type: 'string' },
           { id: 'keyword', name: 'keyword', value: 'coffee shop', type: 'string' },
           { id: 'base_location', name: 'base_location', value: 'New York, USA', type: 'string' },
           { id: 'max_results', name: 'max_results', value: 5, type: 'number' },
@@ -114,6 +119,59 @@ function manualTrigger(position, name = 'Manual Trigger', id = 'manual-trigger')
   });
 }
 
+function searchScrapers(position) {
+  return coreClawNode({
+    id: 'search-scrapers',
+    name: 'Search CoreClaw Scrapers',
+    position,
+    parameters: {
+      resource: 'scraper',
+      operation: 'search',
+      query: '={{ $node["Lead Search Input"].json.store_search_query }}',
+      limit: '={{ Number($node["Lead Search Input"].json.store_search_limit || 20) }}',
+    },
+  });
+}
+
+function selectGoogleMapsKeywordScraper(position) {
+  return node({
+    id: 'select-google-maps-keyword-scraper',
+    name: 'Select Google Maps Keyword Scraper',
+    type: 'n8n-nodes-base.code',
+    typeVersion: 2,
+    position,
+    parameters: {
+      mode: 'runOnceForAllItems',
+      jsCode: `
+const candidates = $input.all().map((item) => item.json).filter(Boolean);
+const input = $node["Lead Search Input"].json;
+
+const targetSlug = String(input.target_scraper_slug || "").trim();
+const targetTitle = String(input.target_scraper_title || "${GOOGLE_MAPS_KEYWORD_NAME}").trim().toLowerCase();
+
+const selected = candidates.find((candidate) => String(candidate.slug || "") === targetSlug)
+  ?? candidates.find((candidate) => String(candidate.title || "").trim().toLowerCase() === targetTitle)
+  ?? candidates.find((candidate) => /google\\s*map/i.test(String(candidate.title || "")) && /keyword/i.test(String(candidate.title || "")));
+
+if (!selected?.slug) {
+  const found = candidates.map((candidate) => candidate.title || candidate.slug).filter(Boolean).slice(0, 10).join(", ");
+  throw new Error(\`Could not find the Google Maps keyword scraper from CoreClaw store search. Found: \${found || "none"}\`);
+}
+
+return [{
+  json: {
+    scraper_slug: selected.slug,
+    scraper_title: selected.title || "${GOOGLE_MAPS_KEYWORD_NAME}",
+    scraper_description: selected.description || "",
+    store_search_query: input.store_search_query,
+    store_candidates_checked: candidates.length,
+  },
+}];
+`.trim(),
+    },
+  });
+}
+
 function getScraperDetails(position) {
   return coreClawNode({
     id: 'get-scraper-details',
@@ -125,17 +183,17 @@ function getScraperDetails(position) {
       scraperSlug: {
         __rl: true,
         mode: 'id',
-        value: GOOGLE_MAPS_KEYWORD_SCRAPER,
+        value: '={{ $json.scraper_slug }}',
         cachedResultName: GOOGLE_MAPS_KEYWORD_NAME,
       },
     },
   });
 }
 
-function buildRunParameters(position) {
+function generateCampaignConfig(position) {
   return node({
-    id: 'build-run-parameters',
-    name: 'Build Run Parameters',
+    id: 'generate-campaign-config',
+    name: 'Generate Campaign Config',
     type: 'n8n-nodes-base.code',
     typeVersion: 2,
     position,
@@ -143,52 +201,78 @@ function buildRunParameters(position) {
       mode: 'runOnceForAllItems',
       jsCode: `
 const detail = $input.all()[0]?.json ?? {};
-const cfg = $node["Campaign Config"].json;
+const selected = $node["Select Google Maps Keyword Scraper"].json;
+const input = $node["Lead Search Input"].json;
 
 const version = detail.version;
 if (!version) {
   throw new Error("CoreClaw scraper detail did not include a version. Re-check the scraper slug or API response.");
 }
 
-const keyword = String(cfg.keyword ?? "").trim();
-const baseLocation = String(cfg.base_location ?? "").trim();
+const parameters = detail.parameters ?? {};
+const customSchema = parameters.custom ?? {};
+const systemDefaults = parameters.system ?? {};
+const customProperties = Array.isArray(customSchema.properties) ? customSchema.properties : [];
+const requiredCustomFields = customProperties
+  .filter((property) => property.required)
+  .map((property) => property.name)
+  .filter(Boolean);
+
+const keyword = String(input.keyword ?? "").trim();
+const baseLocation = String(input.base_location ?? "").trim();
 if (!keyword) throw new Error("keyword is required.");
 if (!baseLocation) throw new Error("base_location is required.");
 
-const hardLimit = Math.max(1, Number(cfg.max_results_hard_limit || 100));
-const maxResults = Math.min(Math.max(1, Number(cfg.max_results || 5)), hardLimit);
-const fetchReviews = Boolean(cfg.fetch_reviews);
-const fetchSocialInfo = Boolean(cfg.fetch_social_info);
+const hardLimit = Math.max(1, Number(input.max_results_hard_limit || 100));
+const maxResults = Math.min(Math.max(1, Number(input.max_results || 5)), hardLimit);
+const fetchReviews = Boolean(input.fetch_reviews);
+const fetchSocialInfo = Boolean(input.fetch_social_info);
+
+function numberFromInput(name, fallback, minimum = 0) {
+  return Math.max(minimum, Number(input[name] ?? fallback));
+}
+
+function systemDefault(names, fallback) {
+  for (const name of names) {
+    const value = systemDefaults[name];
+    if (value !== undefined && value !== null && value !== "") return value;
+  }
+  return fallback;
+}
 
 return [{
   json: {
-    scraper_slug: "${GOOGLE_MAPS_KEYWORD_SCRAPER}",
-    scraper_title: "${GOOGLE_MAPS_KEYWORD_NAME}",
+    scraper_slug: selected.scraper_slug,
+    scraper_title: selected.scraper_title,
+    scraper_description: selected.scraper_description,
     version,
+    custom_schema: customSchema,
+    system_defaults: systemDefaults,
+    required_custom_fields: requiredCustomFields,
     keyword,
     base_location: baseLocation,
     max_results: maxResults,
-    result_limit: Math.max(1, Number(cfg.result_limit || maxResults || 20)),
-    wait_seconds: Math.max(5, Number(cfg.wait_seconds || 30)),
+    result_limit: numberFromInput("result_limit", maxResults || 20, 1),
+    wait_seconds: numberFromInput("wait_seconds", 30, 5),
     max_poll_attempts: ${MAX_POLL_ATTEMPTS},
-    export_filter_keys: String(cfg.export_filter_keys || "title,address,phone,website,review_rating,review_count,primary_category,url"),
+    export_filter_keys: String(input.export_filter_keys || "title,address,phone,website,review_rating,review_count,primary_category,url"),
     customParams: JSON.stringify({
       url: [{
-        lang: String(cfg.lang || "en-US"),
+        lang: String(input.lang || "en-US"),
         keyword,
         max_results: maxResults,
         base_location: baseLocation,
         fetch_reviews: fetchReviews,
         fetch_social_info: fetchSocialInfo,
-        max_reviews_per_place: Math.max(0, Number(cfg.max_reviews_per_place || 0)),
+        max_reviews_per_place: numberFromInput("max_reviews_per_place", 0, 0),
       }],
     }),
     systemParams: JSON.stringify({
-      cpus: Math.max(1, Number(cfg.cpus || 1)),
-      memory: Math.max(1024, Number(cfg.memory || 4096)),
-      execute_limit_time_seconds: Math.max(60, Number(cfg.execute_limit_time_seconds || 900)),
-      max_total_charge: Math.max(0, Number(cfg.max_total_charge || 0)),
-      max_total_traffic: Math.max(0, Number(cfg.max_total_traffic || 0)),
+      cpus: numberFromInput("cpus", systemDefault(["cpus"], 1), 0.125),
+      memory: numberFromInput("memory", systemDefault(["memory", "memory_bytes"], 4096), 512),
+      execute_limit_time_seconds: numberFromInput("execute_limit_time_seconds", systemDefault(["execute_limit_time_seconds"], 900), 60),
+      max_total_charge: numberFromInput("max_total_charge", systemDefault(["max_total_charge"], 0), 0),
+      max_total_traffic: numberFromInput("max_total_traffic", systemDefault(["max_total_traffic"], 0), 0),
     }),
   },
 }];
@@ -208,7 +292,7 @@ function startRun(position) {
       scraperSlug: {
         __rl: true,
         mode: 'id',
-        value: GOOGLE_MAPS_KEYWORD_SCRAPER,
+        value: '={{ $json.scraper_slug }}',
         cachedResultName: GOOGLE_MAPS_KEYWORD_NAME,
       },
       version: '={{ $json.version }}',
@@ -229,7 +313,7 @@ function waitNode(index, position) {
     position,
     parameters: {
       resume: 'timeInterval',
-      amount: '={{ Number($node["Build Run Parameters"].json.wait_seconds || 30) }}',
+      amount: '={{ Number($node["Generate Campaign Config"].json.wait_seconds || 30) }}',
       unit: 'seconds',
     },
   });
@@ -294,7 +378,7 @@ function getResults(position) {
       operation: 'getResults',
       runSlug: '={{ $node["Start CoreClaw Run"].json.run_slug }}',
       returnAll: false,
-      limit: '={{ Number($node["Build Run Parameters"].json.result_limit || 20) }}',
+      limit: '={{ Number($node["Generate Campaign Config"].json.result_limit || 20) }}',
     },
   });
 }
@@ -327,17 +411,17 @@ return [{
   });
 }
 
-function exportCsv(position) {
+function exportResults(format, id, name, position) {
   return coreClawNode({
-    id: 'export-csv',
-    name: 'Export CSV',
+    id,
+    name,
     position,
     parameters: {
       resource: 'run',
       operation: 'exportResults',
       runSlug: '={{ $node["Start CoreClaw Run"].json.run_slug }}',
-      format: 'csv',
-      filterKeys: '={{ $node["Build Run Parameters"].json.export_filter_keys }}',
+      format,
+      filterKeys: '={{ $node["Generate Campaign Config"].json.export_filter_keys }}',
     },
   });
 }
@@ -382,9 +466,10 @@ function firstJson(nodeName) {
 const status = ${JSON.stringify(statusNodes)}.map(firstJson).filter(Boolean).at(-1) ?? {};
 const logs = $input.all()[0]?.json ?? {};
 const runSlug = $node["Start CoreClaw Run"].json.run_slug;
-const cfg = $node["Build Run Parameters"].json;
+const cfg = $node["Generate Campaign Config"].json;
 const resultSummary = firstJson("Summarize Results") ?? {};
 const exportResult = firstJson("Export CSV") ?? {};
+const jsonExportResult = firstJson("Export JSON") ?? {};
 
 return [{
   json: {
@@ -404,6 +489,7 @@ return [{
     first_result_title: resultSummary.first_result_title ?? "",
     first_result_address: resultSummary.first_result_address ?? "",
     csv_download_url: exportResult.download_url ?? "",
+    json_download_url: jsonExportResult.download_url ?? "",
     logs_url: logs.all_logs_url ?? "",
     log_count: Array.isArray(logs.list) ? logs.list.length : 0,
     next_step: ${isSuccess
@@ -428,7 +514,7 @@ function buildStarterSummary(position) {
       mode: 'runOnceForAllItems',
       jsCode: `
 const run = $input.all()[0]?.json ?? {};
-const cfg = $node["Build Run Parameters"].json;
+const cfg = $node["Generate Campaign Config"].json;
 return [{
   json: {
     outcome: "started",
@@ -476,33 +562,38 @@ function buildCompleteWorkflow() {
     stickyNote({
       id: 'note-setup',
       name: 'Setup Note',
-      position: [-1060, -320],
-      width: 560,
-      height: 280,
+      position: [-1460, -340],
+      width: 640,
+      height: 320,
       content:
-        '## CoreClaw Google Maps Leads - Complete Global\\n\\n1. Install `n8n-nodes-coreclaw`.\\n2. Create a CoreClaw API credential.\\n3. Select that credential on every CoreClaw node after import.\\n4. Edit Campaign Config, then execute.\\n\\nNo API key, local path, or proxy setting is stored in this workflow.',
+        '## CoreClaw Google Maps Leads - Complete Global\\n\\n1. Install `n8n-nodes-coreclaw`.\\n2. Create a CoreClaw API credential.\\n3. Select that credential on every CoreClaw node after import.\\n4. Edit Lead Search Input, then execute.\\n\\nFlow: Search scrapers -> select Google Maps keyword scraper -> get details/version/schema -> generate campaign config -> run -> poll -> results -> CSV/JSON exports -> logs.\\n\\nNo API key, local path, or proxy setting is stored in this workflow.',
     }),
-    manualTrigger([-980, 120]),
-    campaignConfigNode([-760, 120]),
-    getScraperDetails([-500, 120]),
-    buildRunParameters([-260, 120]),
-    startRun([0, 120]),
-    getResults([1900, -340]),
-    summarizeResults([2160, -340]),
-    exportCsv([2420, -340]),
-    getLogs('Get Success Logs', 'get-success-logs', [2680, -340]),
-    buildSummary('Success', [2940, -340]),
-    getLogs('Get Failure Logs', 'get-failure-logs', [1900, 240]),
-    buildSummary('Failure', [2160, 240]),
-    getLogs('Get Timeout Logs', 'get-timeout-logs', [1900, 520]),
-    buildSummary('Timeout', [2160, 520]),
+    manualTrigger([-1380, 120]),
+    leadSearchInputNode([-1160, 120]),
+    searchScrapers([-900, 120]),
+    selectGoogleMapsKeywordScraper([-640, 120]),
+    getScraperDetails([-380, 120]),
+    generateCampaignConfig([-120, 120]),
+    startRun([140, 120]),
+    getResults([2060, -340]),
+    summarizeResults([2320, -340]),
+    exportResults('csv', 'export-csv', 'Export CSV', [2580, -340]),
+    exportResults('json', 'export-json', 'Export JSON', [2840, -340]),
+    getLogs('Get Success Logs', 'get-success-logs', [3100, -340]),
+    buildSummary('Success', [3360, -340]),
+    getLogs('Get Failure Logs', 'get-failure-logs', [2060, 240]),
+    buildSummary('Failure', [2320, 240]),
+    getLogs('Get Timeout Logs', 'get-timeout-logs', [2060, 520]),
+    buildSummary('Timeout', [2320, 520]),
   ];
 
   const connections = {};
-  connect(connections, 'Manual Trigger', 'Campaign Config');
-  connect(connections, 'Campaign Config', 'Get Current Scraper Details');
-  connect(connections, 'Get Current Scraper Details', 'Build Run Parameters');
-  connect(connections, 'Build Run Parameters', 'Start CoreClaw Run');
+  connect(connections, 'Manual Trigger', 'Lead Search Input');
+  connect(connections, 'Lead Search Input', 'Search CoreClaw Scrapers');
+  connect(connections, 'Search CoreClaw Scrapers', 'Select Google Maps Keyword Scraper');
+  connect(connections, 'Select Google Maps Keyword Scraper', 'Get Current Scraper Details');
+  connect(connections, 'Get Current Scraper Details', 'Generate Campaign Config');
+  connect(connections, 'Generate Campaign Config', 'Start CoreClaw Run');
 
   for (let i = 1; i <= MAX_POLL_ATTEMPTS; i += 1) {
     const y = 120 + (i - 1) * 180;
@@ -528,7 +619,8 @@ function buildCompleteWorkflow() {
 
   connect(connections, 'Get Run Results', 'Summarize Results');
   connect(connections, 'Summarize Results', 'Export CSV');
-  connect(connections, 'Export CSV', 'Get Success Logs');
+  connect(connections, 'Export CSV', 'Export JSON');
+  connect(connections, 'Export JSON', 'Get Success Logs');
   connect(connections, 'Get Success Logs', 'Build Success Summary');
   connect(connections, 'Get Failure Logs', 'Build Failure Summary');
   connect(connections, 'Get Timeout Logs', 'Build Timeout Summary');
@@ -546,24 +638,28 @@ function buildStarterWorkflow() {
     stickyNote({
       id: 'note-starter',
       name: 'Setup Note',
-      position: [-860, -260],
-      width: 520,
-      height: 240,
+      position: [-1380, -260],
+      width: 620,
+      height: 260,
       content:
-        '## CoreClaw Google Maps Leads - Starter Global\\n\\nStarts a CoreClaw Google Maps keyword run and returns `run_slug`.\\n\\nAfter import, select your own CoreClaw API credential on each CoreClaw node.',
+        '## CoreClaw Google Maps Leads - Starter Global\\n\\nSearches CoreClaw Store, selects the Google Maps keyword scraper, reads details/version/schema, generates campaign config, starts a run, and returns `run_slug`.\\n\\nAfter import, select your own CoreClaw API credential on each CoreClaw node.',
     }),
-    manualTrigger([-760, 120]),
-    campaignConfigNode([-520, 120]),
+    manualTrigger([-1280, 120]),
+    leadSearchInputNode([-1040, 120]),
+    searchScrapers([-780, 120]),
+    selectGoogleMapsKeywordScraper([-520, 120]),
     getScraperDetails([-260, 120]),
-    buildRunParameters([0, 120]),
+    generateCampaignConfig([0, 120]),
     startRun([260, 120]),
     buildStarterSummary([520, 120]),
   ];
   const connections = {};
-  connect(connections, 'Manual Trigger', 'Campaign Config');
-  connect(connections, 'Campaign Config', 'Get Current Scraper Details');
-  connect(connections, 'Get Current Scraper Details', 'Build Run Parameters');
-  connect(connections, 'Build Run Parameters', 'Start CoreClaw Run');
+  connect(connections, 'Manual Trigger', 'Lead Search Input');
+  connect(connections, 'Lead Search Input', 'Search CoreClaw Scrapers');
+  connect(connections, 'Search CoreClaw Scrapers', 'Select Google Maps Keyword Scraper');
+  connect(connections, 'Select Google Maps Keyword Scraper', 'Get Current Scraper Details');
+  connect(connections, 'Get Current Scraper Details', 'Generate Campaign Config');
+  connect(connections, 'Generate Campaign Config', 'Start CoreClaw Run');
   connect(connections, 'Start CoreClaw Run', 'Build Starter Summary');
   return workflowBase({
     id: 'coreclawGoogleMapsLeadsStarterGlobal',

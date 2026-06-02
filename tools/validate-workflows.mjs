@@ -65,13 +65,16 @@ function assertConnection(workflow, fileName, from, to, outputIndex = 0) {
 function validateComplete(workflow, fileName) {
   assertHasNodes(workflow, fileName, [
     'Manual Trigger',
-    'Campaign Config',
+    'Lead Search Input',
+    'Search CoreClaw Scrapers',
+    'Select Google Maps Keyword Scraper',
     'Get Current Scraper Details',
-    'Build Run Parameters',
+    'Generate Campaign Config',
     'Start CoreClaw Run',
     'Get Run Results',
     'Summarize Results',
     'Export CSV',
+    'Export JSON',
     'Get Success Logs',
     'Build Success Summary',
     'Get Failure Logs',
@@ -80,11 +83,17 @@ function validateComplete(workflow, fileName) {
     'Build Timeout Summary',
   ]);
 
-  assertConnection(workflow, fileName, 'Get Current Scraper Details', 'Build Run Parameters');
-  assertConnection(workflow, fileName, 'Build Run Parameters', 'Start CoreClaw Run');
+  assertConnection(workflow, fileName, 'Manual Trigger', 'Lead Search Input');
+  assertConnection(workflow, fileName, 'Lead Search Input', 'Search CoreClaw Scrapers');
+  assertConnection(workflow, fileName, 'Search CoreClaw Scrapers', 'Select Google Maps Keyword Scraper');
+  assertConnection(workflow, fileName, 'Select Google Maps Keyword Scraper', 'Get Current Scraper Details');
+  assertConnection(workflow, fileName, 'Get Current Scraper Details', 'Generate Campaign Config');
+  assertConnection(workflow, fileName, 'Generate Campaign Config', 'Start CoreClaw Run');
   assertConnection(workflow, fileName, 'Start CoreClaw Run', 'Wait Before Poll 1');
   assertConnection(workflow, fileName, 'Get Run Results', 'Summarize Results');
-  assertConnection(workflow, fileName, 'Export CSV', 'Get Success Logs');
+  assertConnection(workflow, fileName, 'Summarize Results', 'Export CSV');
+  assertConnection(workflow, fileName, 'Export CSV', 'Export JSON');
+  assertConnection(workflow, fileName, 'Export JSON', 'Get Success Logs');
   assertConnection(workflow, fileName, 'Get Failure Logs', 'Build Failure Summary');
   assertConnection(workflow, fileName, 'Get Timeout Logs', 'Build Timeout Summary');
 
@@ -111,14 +120,20 @@ function validateComplete(workflow, fileName) {
 function validateStarter(workflow, fileName) {
   assertHasNodes(workflow, fileName, [
     'Manual Trigger',
-    'Campaign Config',
+    'Lead Search Input',
+    'Search CoreClaw Scrapers',
+    'Select Google Maps Keyword Scraper',
     'Get Current Scraper Details',
-    'Build Run Parameters',
+    'Generate Campaign Config',
     'Start CoreClaw Run',
     'Build Starter Summary',
   ]);
-  assertConnection(workflow, fileName, 'Get Current Scraper Details', 'Build Run Parameters');
-  assertConnection(workflow, fileName, 'Build Run Parameters', 'Start CoreClaw Run');
+  assertConnection(workflow, fileName, 'Manual Trigger', 'Lead Search Input');
+  assertConnection(workflow, fileName, 'Lead Search Input', 'Search CoreClaw Scrapers');
+  assertConnection(workflow, fileName, 'Search CoreClaw Scrapers', 'Select Google Maps Keyword Scraper');
+  assertConnection(workflow, fileName, 'Select Google Maps Keyword Scraper', 'Get Current Scraper Details');
+  assertConnection(workflow, fileName, 'Get Current Scraper Details', 'Generate Campaign Config');
+  assertConnection(workflow, fileName, 'Generate Campaign Config', 'Start CoreClaw Run');
   assertConnection(workflow, fileName, 'Start CoreClaw Run', 'Build Starter Summary');
 }
 

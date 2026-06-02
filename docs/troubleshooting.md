@@ -10,11 +10,11 @@ This is expected. The public workflow intentionally ships without credential ref
 
 ## The run starts but the workflow times out
 
-The Complete workflow polls six times. Increase `wait_seconds` in **Campaign Config** for larger jobs, or use the Starter workflow and build a longer polling or webhook callback flow.
+The Complete workflow polls six times. Increase `wait_seconds` in **Lead Search Input** for larger jobs, or use the Starter workflow and build a longer polling or webhook callback flow.
 
 ## The export step fails
 
-The CoreClaw node expects `format` to be `csv` or `json`. This template uses `format = csv` and passes `export_filter_keys` as a comma-separated field list.
+The CoreClaw node expects `format` to be `csv` or `json`. This template exports both CSV and JSON and passes `export_filter_keys` as a comma-separated field list.
 
 If the scraper output schema changes, reduce or clear `export_filter_keys` and rerun.
 
@@ -26,6 +26,7 @@ Check:
 - `base_location` is not empty.
 - `max_results` is a positive number.
 - The CoreClaw scraper still exposes the expected Google Maps keyword schema.
+- The workflow finds the Google Maps keyword scraper in **Search CoreClaw Scrapers**.
 - The workflow includes **Get Current Scraper Details** before **Start CoreClaw Run**.
 
 ## Network errors
