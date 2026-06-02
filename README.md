@@ -8,7 +8,7 @@ This repository is meant for public sharing. The workflow JSON files do not incl
 
 | Workflow | File | Best for |
 | --- | --- | --- |
-| CoreClaw Google Maps Leads Complete Global | `workflows/coreclaw-google-maps-leads-complete-global.json` | Full lead run with store search, scraper selection, detail/schema discovery, generated campaign config, bounded polling, success/failure/timeout branches, result preview, CSV/JSON export, and logs |
+| CoreClaw Google Maps Leads Complete Global | `workflows/coreclaw-google-maps-leads-complete-global.json` | Full lead run with store search, scraper selection, detail/schema discovery, generated campaign config, live polling loop, success/failure branches, result preview, CSV/JSON export, and logs |
 | CoreClaw Google Maps Leads Starter Global | `workflows/coreclaw-google-maps-leads-starter-global.json` | Store search plus generated run config, then returns `run_slug` for users who want to build their own downstream steps |
 
 ## Quick Start
@@ -33,7 +33,7 @@ See [setup](docs/setup.md), [workflow guide](docs/workflows.md), and [troublesho
 
 - The workflows run inside n8n. GitHub is only the public distribution and version-control location.
 - n8n Cloud may not allow unverified community nodes. If `n8n-nodes-coreclaw` is not verified in the target environment, use self-hosted n8n.
-- The Complete workflow uses six fixed polling attempts. Increase `wait_seconds` in **Lead Search Input** for larger jobs.
+- The Complete workflow polls live until CoreClaw returns a terminal status. Increase `wait_seconds` in **Lead Search Input** for larger jobs or slower networks.
 - Overseas users normally should not need a local outbound proxy. Users in mainland China may need to configure the n8n server process with outbound proxy variables. See [China mainland proxy notes](docs/china-mainland-proxy.md).
 
 ## Development

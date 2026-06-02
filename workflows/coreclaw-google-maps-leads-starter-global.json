@@ -34,30 +34,6 @@
         "assignments": {
           "assignments": [
             {
-              "id": "store_search_query",
-              "name": "store_search_query",
-              "value": "Google Maps keyword",
-              "type": "string"
-            },
-            {
-              "id": "store_search_limit",
-              "name": "store_search_limit",
-              "value": 20,
-              "type": "number"
-            },
-            {
-              "id": "target_scraper_title",
-              "name": "target_scraper_title",
-              "value": "Google Map Details By Keyword",
-              "type": "string"
-            },
-            {
-              "id": "target_scraper_slug",
-              "name": "target_scraper_slug",
-              "value": "01KPD6M5YQADCQKGVKPDZVYC63",
-              "type": "string"
-            },
-            {
               "id": "keyword",
               "name": "keyword",
               "value": "coffee shop",
@@ -72,14 +48,8 @@
             {
               "id": "max_results",
               "name": "max_results",
-              "value": 5,
+              "value": 3,
               "type": "number"
-            },
-            {
-              "id": "lang",
-              "name": "lang",
-              "value": "en-US",
-              "type": "string"
             },
             {
               "id": "fetch_reviews",
@@ -94,64 +64,10 @@
               "type": "boolean"
             },
             {
-              "id": "max_reviews_per_place",
-              "name": "max_reviews_per_place",
-              "value": 5,
-              "type": "number"
-            },
-            {
-              "id": "result_limit",
-              "name": "result_limit",
-              "value": 20,
-              "type": "number"
-            },
-            {
-              "id": "max_results_hard_limit",
-              "name": "max_results_hard_limit",
-              "value": 100,
-              "type": "number"
-            },
-            {
               "id": "wait_seconds",
               "name": "wait_seconds",
-              "value": 30,
+              "value": 10,
               "type": "number"
-            },
-            {
-              "id": "cpus",
-              "name": "cpus",
-              "value": 1,
-              "type": "number"
-            },
-            {
-              "id": "memory",
-              "name": "memory",
-              "value": 4096,
-              "type": "number"
-            },
-            {
-              "id": "execute_limit_time_seconds",
-              "name": "execute_limit_time_seconds",
-              "value": 900,
-              "type": "number"
-            },
-            {
-              "id": "max_total_charge",
-              "name": "max_total_charge",
-              "value": 0,
-              "type": "number"
-            },
-            {
-              "id": "max_total_traffic",
-              "name": "max_total_traffic",
-              "value": 0,
-              "type": "number"
-            },
-            {
-              "id": "export_filter_keys",
-              "name": "export_filter_keys",
-              "value": "title,address,phone,website,review_rating,review_count,primary_category,url",
-              "type": "string"
             }
           ]
         },
@@ -170,8 +86,8 @@
       "parameters": {
         "resource": "scraper",
         "operation": "search",
-        "query": "={{ $node[\"Lead Search Input\"].json.store_search_query }}",
-        "limit": "={{ Number($node[\"Lead Search Input\"].json.store_search_limit || 20) }}"
+        "query": "google maps",
+        "limit": 20
       },
       "id": "search-scrapers",
       "name": "Search CoreClaw Scrapers",
@@ -190,7 +106,7 @@
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const candidates = $input.all().map((item) => item.json).filter(Boolean);\nconst input = $node[\"Lead Search Input\"].json;\n\nconst targetSlug = String(input.target_scraper_slug || \"\").trim();\nconst targetTitle = String(input.target_scraper_title || \"Google Map Details By Keyword\").trim().toLowerCase();\n\nconst selected = candidates.find((candidate) => String(candidate.slug || \"\") === targetSlug)\n  ?? candidates.find((candidate) => String(candidate.title || \"\").trim().toLowerCase() === targetTitle)\n  ?? candidates.find((candidate) => /google\\s*map/i.test(String(candidate.title || \"\")) && /keyword/i.test(String(candidate.title || \"\")));\n\nif (!selected?.slug) {\n  const found = candidates.map((candidate) => candidate.title || candidate.slug).filter(Boolean).slice(0, 10).join(\", \");\n  throw new Error(`Could not find the Google Maps keyword scraper from CoreClaw store search. Found: ${found || \"none\"}`);\n}\n\nreturn [{\n  json: {\n    scraper_slug: selected.slug,\n    scraper_title: selected.title || \"Google Map Details By Keyword\",\n    scraper_description: selected.description || \"\",\n    store_search_query: input.store_search_query,\n    store_candidates_checked: candidates.length,\n  },\n}];"
+        "jsCode": "const candidates = $input.all().map((item) => item.json).filter(Boolean);\n\nconst targetSlug = \"01KPD6M5YQADCQKGVKPDZVYC63\";\nconst targetTitle = \"Google Map Details By Keyword\".toLowerCase();\n\nconst selected = candidates.find((candidate) => String(candidate.slug || \"\") === targetSlug)\n  ?? candidates.find((candidate) => String(candidate.title || \"\").trim().toLowerCase() === targetTitle)\n  ?? candidates.find((candidate) => /google\\s*map/i.test(String(candidate.title || \"\")) && /keyword/i.test(String(candidate.title || \"\")));\n\nif (!selected?.slug) {\n  const found = candidates.map((candidate) => candidate.title || candidate.slug).filter(Boolean).slice(0, 10).join(\", \");\n  throw new Error(`Could not find the Google Maps keyword scraper from CoreClaw store search. Found: ${found || \"none\"}`);\n}\n\nreturn [{\n  json: {\n    scraper_slug: selected.slug,\n    scraper_title: selected.title || \"Google Map Details By Keyword\",\n    scraper_description: selected.description || \"\",\n    store_search_query: \"google maps\",\n    store_candidates_checked: candidates.length,\n  },\n}];"
       },
       "id": "select-google-maps-keyword-scraper",
       "name": "Select Google Maps Keyword Scraper",
@@ -229,7 +145,7 @@
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const detail = $input.all()[0]?.json ?? {};\nconst selected = $node[\"Select Google Maps Keyword Scraper\"].json;\nconst input = $node[\"Lead Search Input\"].json;\n\nconst version = detail.version;\nif (!version) {\n  throw new Error(\"CoreClaw scraper detail did not include a version. Re-check the scraper slug or API response.\");\n}\n\nconst parameters = detail.parameters ?? {};\nconst customSchema = parameters.custom ?? {};\nconst systemDefaults = parameters.system ?? {};\nconst customProperties = Array.isArray(customSchema.properties) ? customSchema.properties : [];\nconst requiredCustomFields = customProperties\n  .filter((property) => property.required)\n  .map((property) => property.name)\n  .filter(Boolean);\n\nconst keyword = String(input.keyword ?? \"\").trim();\nconst baseLocation = String(input.base_location ?? \"\").trim();\nif (!keyword) throw new Error(\"keyword is required.\");\nif (!baseLocation) throw new Error(\"base_location is required.\");\n\nconst hardLimit = Math.max(1, Number(input.max_results_hard_limit || 100));\nconst maxResults = Math.min(Math.max(1, Number(input.max_results || 5)), hardLimit);\nconst fetchReviews = Boolean(input.fetch_reviews);\nconst fetchSocialInfo = Boolean(input.fetch_social_info);\n\nfunction numberFromInput(name, fallback, minimum = 0) {\n  return Math.max(minimum, Number(input[name] ?? fallback));\n}\n\nfunction systemDefault(names, fallback) {\n  for (const name of names) {\n    const value = systemDefaults[name];\n    if (value !== undefined && value !== null && value !== \"\") return value;\n  }\n  return fallback;\n}\n\nreturn [{\n  json: {\n    scraper_slug: selected.scraper_slug,\n    scraper_title: selected.scraper_title,\n    scraper_description: selected.scraper_description,\n    version,\n    custom_schema: customSchema,\n    system_defaults: systemDefaults,\n    required_custom_fields: requiredCustomFields,\n    keyword,\n    base_location: baseLocation,\n    max_results: maxResults,\n    result_limit: numberFromInput(\"result_limit\", maxResults || 20, 1),\n    wait_seconds: numberFromInput(\"wait_seconds\", 30, 5),\n    max_poll_attempts: 6,\n    export_filter_keys: String(input.export_filter_keys || \"title,address,phone,website,review_rating,review_count,primary_category,url\"),\n    customParams: JSON.stringify({\n      url: [{\n        lang: String(input.lang || \"en-US\"),\n        keyword,\n        max_results: maxResults,\n        base_location: baseLocation,\n        fetch_reviews: fetchReviews,\n        fetch_social_info: fetchSocialInfo,\n        max_reviews_per_place: numberFromInput(\"max_reviews_per_place\", 0, 0),\n      }],\n    }),\n    systemParams: JSON.stringify({\n      cpus: numberFromInput(\"cpus\", systemDefault([\"cpus\"], 1), 0.125),\n      memory: numberFromInput(\"memory\", systemDefault([\"memory\", \"memory_bytes\"], 4096), 512),\n      execute_limit_time_seconds: numberFromInput(\"execute_limit_time_seconds\", systemDefault([\"execute_limit_time_seconds\"], 900), 60),\n      max_total_charge: numberFromInput(\"max_total_charge\", systemDefault([\"max_total_charge\"], 0), 0),\n      max_total_traffic: numberFromInput(\"max_total_traffic\", systemDefault([\"max_total_traffic\"], 0), 0),\n    }),\n  },\n}];"
+        "jsCode": "const detail = $input.all()[0]?.json ?? {};\nconst selected = $node[\"Select Google Maps Keyword Scraper\"].json;\nconst input = $node[\"Lead Search Input\"].json;\n\nconst version = detail.version;\nif (!version) {\n  throw new Error(\"CoreClaw scraper detail did not include a version. Re-check the scraper slug or API response.\");\n}\n\nconst parameters = detail.parameters ?? {};\nconst customSchema = parameters.custom ?? {};\nconst systemDefaults = parameters.system ?? {};\nconst customProperties = Array.isArray(customSchema.properties) ? customSchema.properties : [];\nconst primaryCustomProperty = customProperties.find((property) => property.name === customSchema.b)\n  ?? customProperties.find((property) => property.type === \"array\")\n  ?? customProperties[0]\n  ?? {};\nconst customParamRoot = String(primaryCustomProperty.name || customSchema.b || \"\").trim();\nif (!customParamRoot) {\n  throw new Error(\"CoreClaw scraper detail did not expose a custom input root field.\");\n}\n\nconst itemDefaultSource = Array.isArray(primaryCustomProperty.default)\n  ? primaryCustomProperty.default[0]\n  : primaryCustomProperty.default;\nconst customItem = itemDefaultSource && typeof itemDefaultSource === \"object\"\n  ? { ...itemDefaultSource }\n  : {};\nconst itemParamList = Array.isArray(primaryCustomProperty.param_list) ? primaryCustomProperty.param_list : [];\nconst allowedItemFields = new Set([\n  ...Object.keys(customItem),\n  ...itemParamList.map((entry) => entry.param).filter(Boolean),\n]);\nconst requiredCustomFields = customProperties\n  .filter((property) => property.required)\n  .map((property) => property.name)\n  .filter(Boolean);\nconst requiredItemFields = itemParamList\n  .filter((entry) => entry.required)\n  .map((entry) => entry.param)\n  .filter(Boolean);\n\nconst keyword = String(input.keyword ?? \"\").trim();\nconst baseLocation = String(input.base_location ?? \"\").trim();\nif (!keyword) throw new Error(\"keyword is required.\");\nif (!baseLocation) throw new Error(\"base_location is required.\");\n\nconst hardLimit = 100;\nconst maxResults = Math.min(Math.max(1, Number(input.max_results || 3)), hardLimit);\nconst fetchReviews = Boolean(input.fetch_reviews);\nconst fetchSocialInfo = Boolean(input.fetch_social_info);\n\nfunction numberValue(value, fallback, minimum = 0) {\n  const normalized = Number(value ?? fallback);\n  return Math.max(minimum, Number.isFinite(normalized) ? normalized : fallback);\n}\n\nfunction numberFromInput(name, fallback, minimum = 0) {\n  return numberValue(input[name], fallback, minimum);\n}\n\nfunction systemDefault(names, fallback) {\n  for (const name of names) {\n    const value = systemDefaults[name];\n    if (value !== undefined && value !== null && value !== \"\") return value;\n  }\n  return fallback;\n}\n\nfunction isSupportedItemField(name) {\n  return allowedItemFields.size === 0 || allowedItemFields.has(name);\n}\n\nfunction setFirstSupported(names, value) {\n  const fieldName = names.find(isSupportedItemField);\n  if (!fieldName) return \"\";\n  customItem[fieldName] = value;\n  return fieldName;\n}\n\nconst fieldMapping = {\n  keyword: setFirstSupported([\"keyword\", \"search_keyword\", \"query\"], keyword),\n  base_location: setFirstSupported([\"base_location\", \"location\", \"search_location\"], baseLocation),\n  max_results: setFirstSupported([\"max_results\", \"max_result\", \"limit\"], maxResults),\n  lang: setFirstSupported([\"lang\", \"language\"], String(customItem.lang || customItem.language || \"en-US\")),\n  fetch_reviews: setFirstSupported([\"fetch_reviews\"], fetchReviews),\n  fetch_social_info: setFirstSupported([\"fetch_social_info\"], fetchSocialInfo),\n  max_reviews_per_place: setFirstSupported(\n    [\"max_reviews_per_place\"],\n    numberValue(customItem.max_reviews_per_place, 5, 0),\n  ),\n};\n\nif (!fieldMapping.keyword) {\n  throw new Error(\"CoreClaw custom schema did not expose a keyword field.\");\n}\nif (!fieldMapping.base_location) {\n  throw new Error(\"CoreClaw custom schema did not expose a base location field.\");\n}\n\nconst missingRequiredItemFields = requiredItemFields\n  .filter((fieldName) => customItem[fieldName] === undefined || customItem[fieldName] === null || customItem[fieldName] === \"\");\nif (missingRequiredItemFields.length) {\n  throw new Error(`Generated custom params are missing required item fields: ${missingRequiredItemFields.join(\", \")}`);\n}\n\nreturn [{\n  json: {\n    scraper_slug: selected.scraper_slug,\n    scraper_title: selected.scraper_title,\n    scraper_description: selected.scraper_description,\n    version,\n    custom_schema: customSchema,\n    custom_param_root: customParamRoot,\n    custom_item_fields: Object.keys(customItem),\n    custom_item_field_mapping: fieldMapping,\n    system_defaults: systemDefaults,\n    required_custom_fields: requiredCustomFields,\n    required_item_fields: requiredItemFields,\n    keyword,\n    base_location: baseLocation,\n    max_results: maxResults,\n    result_limit: 20,\n    wait_seconds: numberFromInput(\"wait_seconds\", 10, 5),\n    export_filter_keys: \"title,address,phone,website,review_rating,review_count,primary_category,url\",\n    customParams: JSON.stringify({ [customParamRoot]: [customItem] }),\n    systemParams: JSON.stringify({\n      cpus: numberValue(systemDefault([\"cpus\"], 1), 1, 0.125),\n      memory: numberValue(systemDefault([\"memory\", \"memory_bytes\"], 4096), 4096, 512),\n      execute_limit_time_seconds: numberValue(systemDefault([\"execute_limit_time_seconds\"], 900), 900, 0),\n      max_total_charge: numberValue(systemDefault([\"max_total_charge\"], 0), 0, 0),\n      max_total_traffic: numberValue(systemDefault([\"max_total_traffic\"], 0), 0, 0),\n    }),\n  },\n}];"
       },
       "id": "generate-campaign-config",
       "name": "Generate Campaign Config",

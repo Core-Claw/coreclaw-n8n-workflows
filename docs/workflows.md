@@ -14,10 +14,13 @@ Select Google Maps Keyword Scraper
 Get Current Scraper Details
 Generate Campaign Config
 Start CoreClaw Run
-Wait/Get Status/If Succeeded/If Failed x 6
+Wait Before Next Poll
+Get Run Status
+If Run Terminal
+  false -> Wait Before Next Poll
+  true -> If Run Succeeded
 Success: Get Results -> Summarize Results -> Export CSV -> Export JSON -> Get Success Logs -> Build Success Summary
 Failure: Get Failure Logs -> Build Failure Summary
-Timeout: Get Timeout Logs -> Build Timeout Summary
 ```
 
 What it does:
@@ -29,38 +32,31 @@ What it does:
 - Reads `parameters.custom` and `parameters.system` from Get Details.
 - Generates the Google Maps keyword campaign config from **Lead Search Input** plus the live scraper detail response.
 - Starts the scraper run.
-- Polls status up to six times.
+- Polls status in a live loop until CoreClaw reports terminal status `>= 3`.
 - Routes terminal status `3` to the success branch.
-- Routes terminal status `4` to the failure branch.
-- Routes non-terminal status after six attempts to the timeout branch.
+- Routes other terminal statuses to the failure/logs branch.
 - Returns a compact summary with `run_slug`, result counts, first lead preview, CSV download URL, JSON download URL, and logs URL.
 
 Key config fields:
 
 | Field | Meaning |
 | --- | --- |
-| `store_search_query` | Search phrase used to find the scraper in CoreClaw Store |
-| `store_search_limit` | Maximum number of scraper store results to inspect |
-| `target_scraper_title` | Expected scraper title |
-| `target_scraper_slug` | Expected scraper slug used as the strongest selection signal |
 | `keyword` | Search phrase, for example `coffee shop` |
 | `base_location` | Search location, for example `New York, USA` |
 | `max_results` | Requested result count for the scraper |
-| `max_results_hard_limit` | Guardrail that caps `max_results` |
-| `wait_seconds` | Delay between status polls |
-| `result_limit` | Number of inline result records to fetch after success |
-| `export_filter_keys` | Comma-separated CSV columns |
 | `fetch_reviews` | Whether to collect review data |
 | `fetch_social_info` | Whether to collect social information |
-| `cpus`, `memory`, `execute_limit_time_seconds` | CoreClaw system runtime settings |
+| `wait_seconds` | Delay between status polls |
+
+The workflow automatically searches CoreClaw Store for the Google Maps keyword scraper, selects the scraper, reads the current version/schema, derives system runtime settings from **Get Current Scraper Details**, and exports the default CSV/JSON fields.
 
 Recommended first run:
 
 ```text
 keyword = coffee shop
 base_location = New York, USA
-max_results = 5
-wait_seconds = 30
+max_results = 3
+wait_seconds = 10
 fetch_reviews = false
 fetch_social_info = false
 ```

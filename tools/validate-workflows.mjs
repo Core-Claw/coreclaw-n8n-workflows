@@ -54,6 +54,15 @@ function assertHasNodes(workflow, fileName, names) {
   }
 }
 
+function assertMissingNodes(workflow, fileName, names) {
+  const actual = new Set((workflow.nodes ?? []).map((n) => n.name));
+  for (const name of names) {
+    if (actual.has(name)) {
+      fail(`${fileName}: obsolete node should not be present: "${name}"`);
+    }
+  }
+}
+
 function assertConnection(workflow, fileName, from, to, outputIndex = 0) {
   const outputs = workflow.connections?.[from]?.main ?? [];
   const targets = outputs[outputIndex] ?? [];
@@ -71,6 +80,10 @@ function validateComplete(workflow, fileName) {
     'Get Current Scraper Details',
     'Generate Campaign Config',
     'Start CoreClaw Run',
+    'Wait Before Next Poll',
+    'Get Run Status',
+    'If Run Terminal',
+    'If Run Succeeded',
     'Get Run Results',
     'Summarize Results',
     'Export CSV',
@@ -79,6 +92,13 @@ function validateComplete(workflow, fileName) {
     'Build Success Summary',
     'Get Failure Logs',
     'Build Failure Summary',
+  ]);
+
+  assertMissingNodes(workflow, fileName, [
+    'Wait Before Poll 1',
+    'Get Run Status 1',
+    'If Run Succeeded 1',
+    'If Run Failed 1',
     'Get Timeout Logs',
     'Build Timeout Summary',
   ]);
@@ -89,32 +109,18 @@ function validateComplete(workflow, fileName) {
   assertConnection(workflow, fileName, 'Select Google Maps Keyword Scraper', 'Get Current Scraper Details');
   assertConnection(workflow, fileName, 'Get Current Scraper Details', 'Generate Campaign Config');
   assertConnection(workflow, fileName, 'Generate Campaign Config', 'Start CoreClaw Run');
-  assertConnection(workflow, fileName, 'Start CoreClaw Run', 'Wait Before Poll 1');
+  assertConnection(workflow, fileName, 'Start CoreClaw Run', 'Wait Before Next Poll');
+  assertConnection(workflow, fileName, 'Wait Before Next Poll', 'Get Run Status');
+  assertConnection(workflow, fileName, 'Get Run Status', 'If Run Terminal');
+  assertConnection(workflow, fileName, 'If Run Terminal', 'If Run Succeeded', 0);
+  assertConnection(workflow, fileName, 'If Run Terminal', 'Wait Before Next Poll', 1);
+  assertConnection(workflow, fileName, 'If Run Succeeded', 'Get Run Results', 0);
+  assertConnection(workflow, fileName, 'If Run Succeeded', 'Get Failure Logs', 1);
   assertConnection(workflow, fileName, 'Get Run Results', 'Summarize Results');
   assertConnection(workflow, fileName, 'Summarize Results', 'Export CSV');
   assertConnection(workflow, fileName, 'Export CSV', 'Export JSON');
   assertConnection(workflow, fileName, 'Export JSON', 'Get Success Logs');
   assertConnection(workflow, fileName, 'Get Failure Logs', 'Build Failure Summary');
-  assertConnection(workflow, fileName, 'Get Timeout Logs', 'Build Timeout Summary');
-
-  for (let i = 1; i <= 6; i += 1) {
-    assertHasNodes(workflow, fileName, [
-      `Wait Before Poll ${i}`,
-      `Get Run Status ${i}`,
-      `If Run Succeeded ${i}`,
-      `If Run Failed ${i}`,
-    ]);
-    assertConnection(workflow, fileName, `Wait Before Poll ${i}`, `Get Run Status ${i}`);
-    assertConnection(workflow, fileName, `Get Run Status ${i}`, `If Run Succeeded ${i}`);
-    assertConnection(workflow, fileName, `If Run Succeeded ${i}`, 'Get Run Results', 0);
-    assertConnection(workflow, fileName, `If Run Succeeded ${i}`, `If Run Failed ${i}`, 1);
-    assertConnection(workflow, fileName, `If Run Failed ${i}`, 'Get Failure Logs', 0);
-    if (i < 6) {
-      assertConnection(workflow, fileName, `If Run Failed ${i}`, `Wait Before Poll ${i + 1}`, 1);
-    } else {
-      assertConnection(workflow, fileName, `If Run Failed ${i}`, 'Get Timeout Logs', 1);
-    }
-  }
 }
 
 function validateStarter(workflow, fileName) {
