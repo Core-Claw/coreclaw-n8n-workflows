@@ -1,51 +1,80 @@
-# CoreClaw n8n Workflows: Google Maps Leads
+# CoreClaw Google Maps Leads n8n Workflow
 
-Importable n8n workflows for running the CoreClaw **Google Map Details By Keyword** scraper and turning Google Maps search results into lead records.
+One complete n8n workflow for running the CoreClaw **Google Map Details By Keyword** scraper and exporting Google Maps lead data.
 
-This repository is meant for public sharing. The workflow JSON files do not include API keys, credential IDs, local file paths, proxy settings, or historical run IDs.
+## File
 
-## Workflows
+| File | Purpose |
+| --- | --- |
+| `coreclaw-google-maps-leads-complete-global.json` | Complete n8n workflow: scraper discovery, live scraper details, generated campaign config, run start, live polling, results, CSV/JSON export, and logs |
 
-| Workflow | File | Best for |
-| --- | --- | --- |
-| CoreClaw Google Maps Leads Complete Global | `workflows/coreclaw-google-maps-leads-complete-global.json` | Full lead run with store search, scraper selection, detail/schema discovery, generated campaign config, live polling loop, success/failure branches, result preview, CSV/JSON export, and logs |
-| CoreClaw Google Maps Leads Starter Global | `workflows/coreclaw-google-maps-leads-starter-global.json` | Store search plus generated run config, then returns `run_slug` for users who want to build their own downstream steps |
-
-## Quick Start
-
-1. Use a self-hosted n8n instance.
-2. Install the community node package `n8n-nodes-coreclaw`.
-3. Create a CoreClaw API credential in n8n.
-4. Import one of the workflow JSON files from this repository.
-5. Select your CoreClaw credential on every CoreClaw node.
-6. Edit **Lead Search Input** and execute the workflow.
-
-Raw import URLs after this repository is pushed:
+Raw import URL:
 
 ```text
-https://raw.githubusercontent.com/Core-Claw/coreclaw-n8n-workflows-google-maps/main/workflows/coreclaw-google-maps-leads-complete-global.json
-https://raw.githubusercontent.com/Core-Claw/coreclaw-n8n-workflows-google-maps/main/workflows/coreclaw-google-maps-leads-starter-global.json
+https://raw.githubusercontent.com/Core-Claw/coreclaw-n8n-workflows-google-maps/main/coreclaw-google-maps-leads-complete-global.json
 ```
 
-See [setup](docs/setup.md), [workflow guide](docs/workflows.md), and [troubleshooting](docs/troubleshooting.md).
+## What It Does
 
-## Important Notes
+The workflow:
 
-- The workflows run inside n8n. GitHub is only the public distribution and version-control location.
-- n8n Cloud may not allow unverified community nodes. If `n8n-nodes-coreclaw` is not verified in the target environment, use self-hosted n8n.
-- The Complete workflow polls live until CoreClaw returns a terminal status. Increase `wait_seconds` in **Lead Search Input** for larger jobs or slower networks.
-- Overseas users normally should not need a local outbound proxy. Users in mainland China may need to configure the n8n server process with outbound proxy variables. See [China mainland proxy notes](docs/china-mainland-proxy.md).
+1. Searches CoreClaw Store for the Google Maps keyword scraper.
+2. Selects **Google Map Details By Keyword**.
+3. Reads the live scraper details before each run.
+4. Uses the current scraper `version` from CoreClaw.
+5. Builds `customParams` from the live scraper schema and user inputs.
+6. Reuses system defaults from the live scraper details.
+7. Starts the CoreClaw run.
+8. Polls until CoreClaw returns a terminal status.
+9. Fetches result preview, exports CSV and JSON, and retrieves logs.
 
-## Development
+## Requirements
 
-Regenerate and validate workflow exports:
+- A self-hosted n8n instance.
+- The `n8n-nodes-coreclaw` community node installed.
+- A CoreClaw API credential created in n8n.
 
-```bash
-npm run check
+n8n Cloud may not allow unverified community nodes. If the CoreClaw node is unavailable, use self-hosted n8n.
+
+## Import And Run
+
+1. Open n8n.
+2. Import `coreclaw-google-maps-leads-complete-global.json`, or import from the raw URL above.
+3. Select your CoreClaw credential on every CoreClaw node.
+4. Open **Lead Search Input**.
+5. Edit the fields you need.
+6. Execute the workflow.
+
+## User Inputs
+
+Only the **Lead Search Input** node normally needs editing:
+
+| Field | Meaning | Example |
+| --- | --- | --- |
+| `keyword` | Google Maps search keyword | `coffee shop` |
+| `base_location` | Search location | `New York, USA` |
+| `max_results` | Maximum lead count to request | `3` |
+| `fetch_reviews` | Whether to fetch review data | `false` |
+| `fetch_social_info` | Whether to enrich websites/social profiles | `false` |
+| `wait_seconds` | Delay between polling attempts | `10` |
+
+Recommended first test:
+
+```text
+keyword = coffee shop
+base_location = New York, USA
+max_results = 3
+fetch_reviews = false
+fetch_social_info = false
+wait_seconds = 10
 ```
 
-Validation checks that the generated workflow JSON is import-shaped and does not contain credentials, local paths, proxy addresses, or known secret patterns.
+## Network Notes
 
-## Publishing
+The workflow does not include API keys, credential IDs, local file paths, proxy settings, or historical run IDs.
 
-These workflow JSON files can be shared on GitHub and imported into n8n from a raw GitHub URL. Publishing to the official n8n template gallery is separate and optional; see [publishing](docs/publishing.md).
+Overseas users normally should not need a proxy. Users running n8n from mainland China may need to configure outbound proxy environment variables on the n8n server process, but proxy addresses should not be saved inside the shared workflow JSON.
+
+## 中文说明
+
+中文使用说明见 [README.zh-CN.md](README.zh-CN.md).
