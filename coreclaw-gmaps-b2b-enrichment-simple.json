@@ -250,7 +250,7 @@
               "rightValue": 3,
               "operator": {
                 "type": "number",
-                "operation": "equal"
+                "operation": "equals"
               }
             }
           ],
@@ -292,7 +292,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const input = $items('Input Config / 输入配置')?.[0]?.json ?? {};\nconst rows = $input.all().map(item => item.json);\nfunction cleanUrl(value) { return String(value || '').split('?')[0].replace(//$/, ''); }\nfunction key(row) { return String(row.cid || row.data_id || row.website || row.title || '').toLowerCase().trim(); }\nreturn rows.map((row, index) => {\n  const website = cleanUrl(row.website);\n  const emails = [row.email_1, row.email_2, row.email_3, row.email_4, row.all_emails].filter(Boolean).join(', ');\n  const rating = Number(row.total_score || row.rating || 0);\n  const reviewCount = Number(row.reviews_count || row.review_count || 0);\n  let leadScore = 35;\n  if (website) leadScore += 15;\n  if (emails) leadScore += 25;\n  if (row.phone) leadScore += 10;\n  if (rating >= 4.5) leadScore += 10;\n  if (reviewCount >= 100) leadScore += 10;\n  if (rating > 0 && rating < 4) leadScore -= 15;\n  leadScore = Math.max(0, Math.min(100, leadScore));\n  const leadPriority = leadScore >= 80 ? 'hot' : leadScore >= 60 ? 'warm' : 'nurture';\n  return { json: {\n    workflow_kind: 'b2b_simple', lead_key: key(row), index: index + 1,\n    source_keyword: row.source_keyword || input.keyword || '', source_location: row.source_location || input.base_location || '',\n    title: row.title || '', category: row.primary_category || row.all_categories || '', all_categories: row.all_categories || '',\n    address: row.address || '', city: row.city || '', state: row.state || '', country: row.country || '', postal_code: row.postal_code || '',\n    phone: row.phone || '', website, email: emails, rating, review_count: reviewCount, google_maps_url: row.url || '',\n    lead_score: leadScore, lead_priority: leadPriority, crm_stage: leadPriority === 'hot' ? 'Qualified' : 'New',\n    recommended_action: leadPriority === 'hot' ? 'Call today and send personalized email.' : leadPriority === 'warm' ? 'Send email and call within 48 hours.' : 'Add to nurture and enrich later.',\n    company_summary: [row.title, row.primary_category, row.address, row.phone ? 'Phone: ' + row.phone : '', website ? 'Website: ' + website : ''].filter(Boolean).join(' | '),\n    scraped_at: row.scraped_at || new Date().toISOString(), raw: row\n  }};\n});"
+        "jsCode": "const input = $items('Input Config / 输入配置')?.[0]?.json ?? {};\nconst rows = $input.all().map(item => item.json);\nfunction cleanUrl(value) { return String(value || '').split('?')[0].replace(/\\/$/, ''); }\nfunction key(row) { return String(row.cid || row.data_id || row.website || row.title || '').toLowerCase().trim(); }\nreturn rows.map((row, index) => {\n  const website = cleanUrl(row.website);\n  const emails = [row.email_1, row.email_2, row.email_3, row.email_4, row.all_emails].filter(Boolean).join(', ');\n  const rating = Number(row.total_score || row.rating || 0);\n  const reviewCount = Number(row.reviews_count || row.review_count || 0);\n  let leadScore = 35;\n  if (website) leadScore += 15;\n  if (emails) leadScore += 25;\n  if (row.phone) leadScore += 10;\n  if (rating >= 4.5) leadScore += 10;\n  if (reviewCount >= 100) leadScore += 10;\n  if (rating > 0 && rating < 4) leadScore -= 15;\n  leadScore = Math.max(0, Math.min(100, leadScore));\n  const leadPriority = leadScore >= 80 ? 'hot' : leadScore >= 60 ? 'warm' : 'nurture';\n  return { json: {\n    workflow_kind: 'b2b_simple', lead_key: key(row), index: index + 1,\n    source_keyword: row.source_keyword || input.keyword || '', source_location: row.source_location || input.base_location || '',\n    title: row.title || '', category: row.primary_category || row.all_categories || '', all_categories: row.all_categories || '',\n    address: row.address || '', city: row.city || '', state: row.state || '', country: row.country || '', postal_code: row.postal_code || '',\n    phone: row.phone || '', website, email: emails, rating, review_count: reviewCount, google_maps_url: row.url || '',\n    lead_score: leadScore, lead_priority: leadPriority, crm_stage: leadPriority === 'hot' ? 'Qualified' : 'New',\n    recommended_action: leadPriority === 'hot' ? 'Call today and send personalized email.' : leadPriority === 'warm' ? 'Send email and call within 48 hours.' : 'Add to nurture and enrich later.',\n    company_summary: [row.title, row.primary_category, row.address, row.phone ? 'Phone: ' + row.phone : '', website ? 'Website: ' + website : ''].filter(Boolean).join(' | '),\n    scraped_at: row.scraped_at || new Date().toISOString(), raw: row\n  }};\n});"
       }
     },
     {
@@ -351,11 +351,11 @@
           ]
         },
         "sendBody": true,
-        "specfyBody": "json",
-        "jsonBody": "={\"model\":\"astron-code-latest\",\"temperature\":0.2,\"messages\":[{\"role\":\"system\",\"content\":\"You are a B2B revenue operations analyst. Return compact JSON only.\"},{\"role\":\"user\",\"content\":\"Analyze this local business lead and return JSON with fields: persona, pain_point, pitch, next_step, risk. Lead: \" + JSON.stringify($json)}]}",
+        "jsonBody": "={{ ({ model: 'astron-code-latest', temperature: 0.2, messages: [{ role: 'system', content: 'You are a B2B revenue operations analyst. Return compact JSON only.' }, { role: 'user', content: 'Analyze this local business lead and return JSON with fields: persona, pain_point, pitch, next_step, risk. Lead: ' + JSON.stringify($json) }] }) }}",
         "options": {
           "timeout": 60000
-        }
+        },
+        "specifyBody": "json"
       }
     },
     {
@@ -369,7 +369,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "return $input.all().map(item => {\n  const json = item.json;\n  const content = json.choices?.[0]?.message?.content || '';\n  const cleaned = content.replace(/^s*```jsons*/i, '').replace(/```s*$/,'').trim();\n  let ai = {};\n  try { ai = JSON.parse(cleaned); } catch (error) { ai = { raw_ai_output: content }; }\n  return { json: { ...($items('Loop Leads / 逐条线索')?.[0]?.json || {}), ai_persona: ai.persona || '', ai_pain_point: ai.pain_point || '', ai_pitch: ai.pitch || '', ai_next_step: ai.next_step || '', ai_risk: ai.risk || '', ai_raw: ai } };\n});"
+        "jsCode": "const source = $items('Loop Leads / 逐条线索')?.[0]?.json || {};\nconst body = $json;\nconst content = body?.choices?.[0]?.message?.content || '{}';\nconst cleaned = String(content).replace(/^```jsons*/i, '').replace(/^```s*/i, '').replace(/```$/i, '').trim();\nlet parsed = {};\ntry { parsed = JSON.parse(cleaned); } catch (error) { parsed = { raw: content }; }\nreturn [{ json: { ...source, ai_persona: parsed.persona || '', ai_pain_point: parsed.pain_point || '', ai_pitch: parsed.pitch || '', ai_next_step: parsed.next_step || '', ai_risk: parsed.risk || '', ai_raw: parsed } }];"
       }
     },
     {
@@ -433,7 +433,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "return $input.all().map(item => ({ json: { ...item.json, destination: 'notion', notion_page: { title: item.json.title, properties: { Priority: item.json.lead_priority, Score: item.json.lead_score, Stage: item.json.crm_stage, Website: item.json.website } } }));"
+        "jsCode": "return $input.all().map(item => ({ json: { ...item.json, destination: 'notion', notion_page: { title: item.json.title, properties: { Priority: item.json.lead_priority, Score: item.json.lead_score, Stage: item.json.crm_stage, Website: item.json.website } } } }));"
       }
     },
     {
@@ -631,12 +631,18 @@
       "main": [
         [
           {
-            "node": "AI Business Analysis / AI商业分析",
+            "node": "Aggregate Campaign / 聚合活动",
             "type": "main",
             "index": 0
           }
         ],
-        []
+        [
+          {
+            "node": "AI Business Analysis / AI商业分析",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "AI Business Analysis / AI商业分析": {
@@ -659,8 +665,7 @@
             "type": "main",
             "index": 0
           }
-        ],
-        []
+        ]
       ]
     },
     "Fetch Website / 抓取网站": {
@@ -703,7 +708,7 @@
       "main": [
         [
           {
-            "node": "Aggregate Campaign / 聚合活动",
+            "node": "Loop Leads / 逐条线索",
             "type": "main",
             "index": 0
           }

@@ -231,7 +231,7 @@
               "rightValue": 3,
               "operator": {
                 "type": "number",
-                "operation": "equal"
+                "operation": "equals"
               }
             }
           ],
@@ -331,11 +331,11 @@
           ]
         },
         "sendBody": true,
-        "specfyBody": "json",
-        "jsonBody": "={\"model\":\"astron-code-latest\",\"temperature\":0.2,\"messages\":[{\"role\":\"system\",\"content\":\"Return concise JSON only for commercial workflow automation.\"},{\"role\":\"user\",\"content\":\"Analyze this record for business use. Return JSON fields: opportunity, risk, action, priority. Record: \" + JSON.stringify($json)}]}",
+        "jsonBody": "={{ ({ model: 'astron-code-latest', temperature: 0.2, messages: [{ role: 'system', content: 'Return concise JSON only for commercial workflow automation.' }, { role: 'user', content: 'Analyze this record for business use. Return JSON fields: opportunity, risk, action, priority. Record: ' + JSON.stringify($json) }] }) }}",
         "options": {
           "timeout": 60000
-        }
+        },
+        "specifyBody": "json"
       }
     },
     {
@@ -349,7 +349,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "return $input.all().map(item=>{const content=item.json.choices?.[0]?.message?.content||''; const cleaned=content.replace(/^s*```jsons*/i,'').replace(/```s*$/,'').trim(); let ai={}; try{ai=JSON.parse(cleaned)}catch(e){ai={raw:content}} const base=$items('Loop Items / 逐条处理')?.[0]?.json||{}; return {json:{...base,ai_opportunity:ai.opportunity||'',ai_risk:ai.risk||'',ai_action:ai.action||'',ai_priority:ai.priority||base.priority||'',ai_raw:ai}}})"
+        "jsCode": "const source = $items('Loop Items / 逐条处理')?.[0]?.json || {};\nconst body = $json;\nconst content = body?.choices?.[0]?.message?.content || '{}';\nconst cleaned = String(content).replace(/^```jsons*/i, '').replace(/^```s*/i, '').replace(/```$/i, '').trim();\nlet parsed = {};\ntry { parsed = JSON.parse(cleaned); } catch (error) { parsed = { raw: content }; }\nreturn [{ json: { ...source, ai_opportunity: parsed.opportunity || '', ai_risk: parsed.risk || '', ai_action: parsed.action || '', ai_priority: parsed.priority || '', ai_raw: parsed } }];"
       }
     },
     {
@@ -625,12 +625,18 @@
       "main": [
         [
           {
-            "node": "AI Analysis / AI分析",
+            "node": "Prepare Payloads / 准备载荷",
             "type": "main",
             "index": 0
           }
         ],
-        []
+        [
+          {
+            "node": "AI Analysis / AI分析",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "AI Analysis / AI分析": {
@@ -649,12 +655,11 @@
       "main": [
         [
           {
-            "node": "Route Priority / 优先级分流",
+            "node": "Prepare Payloads / 准备载荷",
             "type": "main",
             "index": 0
           }
-        ],
-        []
+        ]
       ]
     },
     "Route Priority / 优先级分流": {
@@ -677,13 +682,7 @@
     },
     "High Priority Queue / 高优先级队列": {
       "main": [
-        [
-          {
-            "node": "Prepare Payloads / 准备载荷",
-            "type": "main",
-            "index": 0
-          }
-        ],
+        [],
         []
       ]
     },
