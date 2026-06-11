@@ -11,7 +11,7 @@
         -520
       ],
       "parameters": {
-        "content": "## CoreClaw Instagram账号情报 / Instagram Intel\n\n**Purpose (EN):** Instagram profile intelligence.\n\n**???????** Instagram?????\n\nThis workflow uses the official CoreClaw node as the scraping source and combines standard n8n nodes for polling, deduplication, AI enrichment, routing, reporting, and destination payload preparation.\n\n????? CoreClaw ????????????? n8n ????????????AI??????????????????",
+        "content": "## CoreClaw Instagram账号情报 / Instagram Intel\n\n**Purpose (EN):** Instagram profile intelligence.\n\n**用途:** Instagram账号情报.\n\nThis workflow uses the official CoreClaw node as the scraping source and combines standard n8n nodes for polling, deduplication, AI enrichment, routing, reporting, and destination payload preparation.\n\n用途: 以CoreClaw官方节点为数据来源，并结合n8n标准节点完成轮询、去重、AI增强、分流、报告和载荷准备。",
         "width": 760,
         "height": 380
       }
@@ -26,7 +26,7 @@
         -520
       ],
       "parameters": {
-        "content": "## Parameters / 参数??\n\nEdit **Input Config / 输入配置** before running.\n\n**Example / ???**\n`username=instagram, limit=1`\n\n**Tips / ???**\n- Start with low limits for testing.\n- Increase wait_seconds for larger jobs.\n- Select your CoreClaw credential on each CoreClaw node after import.\n- ?????????????\n- ???????? wait_seconds?\n- ????? CoreClaw ?????????",
+        "content": "## Parameters / 参数\n\nEdit **Input Config / 输入配置** before running.\n\n**Example / 示例:**\n`username=instagram, limit=1`\n\n**Tips / 提示:**\n- Start with low limits for testing.\n- Increase wait_seconds for larger jobs.\n- Select your CoreClaw credential on each CoreClaw node after import.\n- 测试阶段建议使用较小数量.\n- 大批量任务请提高wait_seconds.\n- 导入后请在CoreClaw节点选择你的凭证.",
         "width": 700,
         "height": 380
       }
@@ -41,7 +41,7 @@
         -120
       ],
       "parameters": {
-        "content": "## Flow / 流程\n\n1. Trigger / ??\n2. Input Config / 输入配置\n3. Start CoreClaw Run / ?? CoreClaw\n4. Wait + Poll / ?????\n5. Get Results / ????\n6. Normalize + Deduplicate / ??????\n7. AI or Enrichment / AI?????\n8. Prepare Payloads + Report / ?????????\n\nUse **Success Summary / 成功摘要** to inspect final output.\n?? **Success Summary / 成功摘要** ???????",
+        "content": "## Flow / 流程\n\n1. Trigger / 触发\n2. Input Config / 输入配置\n3. Start CoreClaw Run / 启动CoreClaw\n4. Wait + Poll / 等待并轮询\n5. Get Results / 获取结果\n6. Normalize + Deduplicate / 规范化并去重\n7. AI or Enrichment / AI或增强处理\n8. Prepare Payloads + Report / 准备载荷并生成报告\n\nUse **Success Summary / 成功摘要** to inspect final output.\n使用 **Success Summary / 成功摘要** 查看最终输出。",
         "width": 760,
         "height": 360
       }
@@ -56,7 +56,7 @@
         -120
       ],
       "parameters": {
-        "content": "## Outputs & Integrations / ?????\n\n**Output (EN):** Creator/brand account profile, opportunity score, partnership action.\n\n**???????** ???????????????????????\n\nRecommended next integrations:\n- Google Sheets / Google ??\n- Airtable or CRM / Airtable ? CRM\n- Slack alerts / Slack ??\n- Notion database / Notion ???\n- Gmail or email outreach / Gmail ?????",
+        "content": "## Outputs & Integrations / 输出集成\n\n**Output (EN):** Creator/brand account profile, opportunity score, partnership action.\n\n**输出:** 生成可用于业务系统的数据载荷、摘要和执行证据.\n\nRecommended next integrations:\n- Google Sheets / Google 表格\n- Airtable or CRM / Airtable 或 CRM\n- Slack alerts / Slack 提醒\n- Notion database / Notion 数据库\n- Gmail or email outreach / Gmail 或邮件外联",
         "width": 700,
         "height": 360
       }
@@ -464,7 +464,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const rows=$input.all().map(i=>i.json); const st=$items('Get Run Status / 获取状态')?.[0]?.json||{}; return [{json:{outcome:'success',workflow_name:'CoreClaw Instagram Profile Intel / Instagram????',run_slug:$items('Start CoreClaw Run / 启动CoreClaw')?.[0]?.json?.run_slug||'',run_status:st.status,result_count:st.results,returned_items:rows.length,commercial_value:'Business-ready CoreClaw workflow with AI analysis, routing, payloads, and reporting.',sample:rows.slice(0,3),verified_at:new Date().toISOString()}}];"
+        "jsCode": "const rows=$input.all().map(i=>i.json); const st=$items('Get Run Status / 获取状态')?.[0]?.json||{}; return [{json:{outcome:'success',workflow_name:'CoreClaw Instagram Profile Intel / Instagram主页情报',run_slug:$items('Start CoreClaw Run / 启动CoreClaw')?.[0]?.json?.run_slug||'',run_status:st.status,result_count:st.results,returned_items:rows.length,commercial_value:'Business-ready CoreClaw workflow with AI analysis, routing, payloads, and reporting.',sample:rows.slice(0,3),verified_at:new Date().toISOString()}}];"
       }
     },
     {
@@ -478,7 +478,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const st=$items('Get Run Status / 获取状态')?.[0]?.json||{}; return [{json:{outcome:'failure',workflow_name:'CoreClaw Instagram Profile Intel / Instagram????',run_status:st.status,error:st.err_msg||'',verified_at:new Date().toISOString()}}];"
+        "jsCode": "const st=$items('Get Run Status / 获取状态')?.[0]?.json||{}; return [{json:{outcome:'failure',workflow_name:'CoreClaw Instagram Profile Intel / Instagram主页情报',run_status:st.status,error:st.err_msg||'',verified_at:new Date().toISOString()}}];"
       }
     }
   ],

@@ -3,7 +3,7 @@
   "nodes": [
     {
       "id": "note-overview",
-      "name": "Overview / ??",
+      "name": "Overview / 概览",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -11,14 +11,14 @@
         -520
       ],
       "parameters": {
-        "content": "## CoreClaw全球拓客 / Global Prospecting\n\n**Purpose (EN):** Global local-business prospecting.\n\n**???????** ?????????\n\nThis workflow uses the official CoreClaw node as the scraping source and combines standard n8n nodes for polling, deduplication, AI enrichment, routing, reporting, and destination payload preparation.\n\n????? CoreClaw ????????????? n8n ????????????AI??????????????????",
+        "content": "## CoreClaw全球拓客 / Global Prospecting\n\n**Purpose (EN):** Global local-business prospecting.\n\n**用途:** 全球本地商家拓客.\n\nThis workflow uses the official CoreClaw node as the scraping source and combines standard n8n nodes for polling, deduplication, AI enrichment, routing, reporting, and destination payload preparation.\n\n用途: 以CoreClaw官方节点为数据来源，并结合n8n标准节点完成轮询、去重、AI增强、分流、报告和载荷准备。",
         "width": 760,
         "height": 380
       }
     },
     {
       "id": "note-parameters",
-      "name": "Parameters / ??",
+      "name": "Parameters / 参数",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -26,14 +26,14 @@
         -520
       ],
       "parameters": {
-        "content": "## Parameters / ????\n\nEdit **Input Config / ????** before running.\n\n**Example / ???**\n`keyword=restaurant, base_location=Singapore, max_results=3`\n\n**Tips / ???**\n- Start with low limits for testing.\n- Increase wait_seconds for larger jobs.\n- Select your CoreClaw credential on each CoreClaw node after import.\n- ?????????????\n- ???????? wait_seconds?\n- ????? CoreClaw ?????????",
+        "content": "## Parameters / 参数\n\nEdit **Input Config / 输入配置** before running.\n\n**Example / 示例:**\n`keyword=restaurant, base_location=Singapore, max_results=3`\n\n**Tips / 提示:**\n- Start with low limits for testing.\n- Increase wait_seconds for larger jobs.\n- Select your CoreClaw credential on each CoreClaw node after import.\n- 测试阶段建议使用较小数量.\n- 大批量任务请提高wait_seconds.\n- 导入后请在CoreClaw节点选择你的凭证.",
         "width": 700,
         "height": 380
       }
     },
     {
       "id": "note-flow",
-      "name": "Flow / ??",
+      "name": "Flow / 流程",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -41,14 +41,14 @@
         -120
       ],
       "parameters": {
-        "content": "## Flow / ??\n\n1. Trigger / ??\n2. Input Config / ????\n3. Start CoreClaw Run / ?? CoreClaw\n4. Wait + Poll / ?????\n5. Get Results / ????\n6. Normalize + Deduplicate / ??????\n7. AI or Enrichment / AI?????\n8. Prepare Payloads + Report / ?????????\n\nUse **Success Summary / ????** to inspect final output.\n?? **Success Summary / ????** ???????",
+        "content": "## Flow / 流程\n\n1. Trigger / 触发\n2. Input Config / 输入配置\n3. Start CoreClaw Run / 启动CoreClaw\n4. Wait + Poll / 等待并轮询\n5. Get Results / 获取结果\n6. Normalize + Deduplicate / 规范化并去重\n7. AI or Enrichment / AI或增强处理\n8. Prepare Payloads + Report / 准备载荷并生成报告\n\nUse **Success Summary / 成功摘要** to inspect final output.\n使用 **Success Summary / 成功摘要** 查看最终输出。",
         "width": 760,
         "height": 360
       }
     },
     {
       "id": "note-output",
-      "name": "Outputs / ??",
+      "name": "Outputs / 输出",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -56,14 +56,14 @@
         -120
       ],
       "parameters": {
-        "content": "## Outputs & Integrations / ?????\n\n**Output (EN):** Global prospecting with AI and multi-destination payloads.\n\n**???????** ???????????????????????\n\nRecommended next integrations:\n- Google Sheets / Google ??\n- Airtable or CRM / Airtable ? CRM\n- Slack alerts / Slack ??\n- Notion database / Notion ???\n- Gmail or email outreach / Gmail ?????",
+        "content": "## Outputs & Integrations / 输出集成\n\n**Output (EN):** Global prospecting with AI and multi-destination payloads.\n\n**输出:** 生成可用于业务系统的数据载荷、摘要和执行证据.\n\nRecommended next integrations:\n- Google Sheets / Google 表格\n- Airtable or CRM / Airtable 或 CRM\n- Slack alerts / Slack 提醒\n- Notion database / Notion 数据库\n- Gmail or email outreach / Gmail 或邮件外联",
         "width": 700,
         "height": 360
       }
     },
     {
       "id": "manual-trigger",
-      "name": "Manual Trigger / ????",
+      "name": "Manual Trigger / 手动启动",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
@@ -74,7 +74,7 @@
     },
     {
       "id": "input-config",
-      "name": "Input Config / ????",
+      "name": "Input Config / 输入配置",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
@@ -133,7 +133,7 @@
     },
     {
       "id": "start-coreclaw-run",
-      "name": "Start CoreClaw Run / ??CoreClaw",
+      "name": "Start CoreClaw Run / 启动CoreClaw",
       "type": "n8n-nodes-coreclaw.coreClaw",
       "typeVersion": 1,
       "position": [
@@ -159,7 +159,7 @@
     },
     {
       "id": "wait-before-next-poll",
-      "name": "Wait Before Poll / ????",
+      "name": "Wait Before Poll / 等待轮询",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
@@ -174,7 +174,7 @@
     },
     {
       "id": "get-run-status",
-      "name": "Get Run Status / ????",
+      "name": "Get Run Status / 获取状态",
       "type": "n8n-nodes-coreclaw.coreClaw",
       "typeVersion": 1,
       "position": [
@@ -184,7 +184,7 @@
       "parameters": {
         "resource": "run",
         "operation": "get",
-        "runSlug": "={{ $('Start CoreClaw Run / ??CoreClaw').item.json.run_slug }}"
+        "runSlug": "={{ $('Start CoreClaw Run / 启动CoreClaw').item.json.run_slug }}"
       },
       "retryOnFail": true,
       "maxTries": 3,
@@ -195,7 +195,7 @@
     },
     {
       "id": "if-run-terminal",
-      "name": "If Terminal / ????",
+      "name": "If Terminal / 是否结束",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -228,7 +228,7 @@
     },
     {
       "id": "if-run-succeeded",
-      "name": "If Success / ????",
+      "name": "If Success / 是否成功",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -261,7 +261,7 @@
     },
     {
       "id": "get-run-results",
-      "name": "Get Run Results / ????",
+      "name": "Get Run Results / 获取结果",
       "type": "n8n-nodes-coreclaw.coreClaw",
       "typeVersion": 1,
       "position": [
@@ -271,9 +271,9 @@
       "parameters": {
         "resource": "run",
         "operation": "getResults",
-        "runSlug": "={{ $('Start CoreClaw Run / ??CoreClaw').item.json.run_slug }}",
+        "runSlug": "={{ $('Start CoreClaw Run / 启动CoreClaw').item.json.run_slug }}",
         "returnAll": false,
-        "limit": "={{ Number($items(\"Input Config / ????\")?.[0]?.json?.max_results || 10) }}"
+        "limit": "={{ Number($items(\"Input Config / 输入配置\")?.[0]?.json?.max_results || 10) }}"
       },
       "retryOnFail": true,
       "maxTries": 3,
@@ -283,7 +283,7 @@
     },
     {
       "id": "normalize-business-leads",
-      "name": "Normalize Leads / ?????",
+      "name": "Normalize Leads / 规范化线索",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -292,12 +292,12 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const input = $items('Input Config / ????')?.[0]?.json ?? {};\nconst rows = $input.all().map(item => item.json);\nfunction cleanUrl(value) { return String(value || '').split('?')[0].replace(//$/, ''); }\nfunction key(row) { return String(row.cid || row.data_id || row.website || row.title || '').toLowerCase().trim(); }\nreturn rows.map((row, index) => {\n  const website = cleanUrl(row.website);\n  const emails = [row.email_1, row.email_2, row.email_3, row.email_4, row.all_emails].filter(Boolean).join(', ');\n  const rating = Number(row.total_score || row.rating || 0);\n  const reviewCount = Number(row.reviews_count || row.review_count || 0);\n  let leadScore = 35;\n  if (website) leadScore += 15;\n  if (emails) leadScore += 25;\n  if (row.phone) leadScore += 10;\n  if (rating >= 4.5) leadScore += 10;\n  if (reviewCount >= 100) leadScore += 10;\n  if (rating > 0 && rating < 4) leadScore -= 15;\n  leadScore = Math.max(0, Math.min(100, leadScore));\n  const leadPriority = leadScore >= 80 ? 'hot' : leadScore >= 60 ? 'warm' : 'nurture';\n  return { json: {\n    workflow_kind: 'global_advanced', lead_key: key(row), index: index + 1,\n    source_keyword: row.source_keyword || input.keyword || '', source_location: row.source_location || input.base_location || '',\n    title: row.title || '', category: row.primary_category || row.all_categories || '', all_categories: row.all_categories || '',\n    address: row.address || '', city: row.city || '', state: row.state || '', country: row.country || '', postal_code: row.postal_code || '',\n    phone: row.phone || '', website, email: emails, rating, review_count: reviewCount, google_maps_url: row.url || '',\n    lead_score: leadScore, lead_priority: leadPriority, crm_stage: leadPriority === 'hot' ? 'Qualified' : 'New',\n    recommended_action: leadPriority === 'hot' ? 'Call today and send personalized email.' : leadPriority === 'warm' ? 'Send email and call within 48 hours.' : 'Add to nurture and enrich later.',\n    company_summary: [row.title, row.primary_category, row.address, row.phone ? 'Phone: ' + row.phone : '', website ? 'Website: ' + website : ''].filter(Boolean).join(' | '),\n    scraped_at: row.scraped_at || new Date().toISOString(), raw: row\n  }};\n});"
+        "jsCode": "const input = $items('Input Config / 输入配置')?.[0]?.json ?? {};\nconst rows = $input.all().map(item => item.json);\nfunction cleanUrl(value) { return String(value || '').split('?')[0].replace(//$/, ''); }\nfunction key(row) { return String(row.cid || row.data_id || row.website || row.title || '').toLowerCase().trim(); }\nreturn rows.map((row, index) => {\n  const website = cleanUrl(row.website);\n  const emails = [row.email_1, row.email_2, row.email_3, row.email_4, row.all_emails].filter(Boolean).join(', ');\n  const rating = Number(row.total_score || row.rating || 0);\n  const reviewCount = Number(row.reviews_count || row.review_count || 0);\n  let leadScore = 35;\n  if (website) leadScore += 15;\n  if (emails) leadScore += 25;\n  if (row.phone) leadScore += 10;\n  if (rating >= 4.5) leadScore += 10;\n  if (reviewCount >= 100) leadScore += 10;\n  if (rating > 0 && rating < 4) leadScore -= 15;\n  leadScore = Math.max(0, Math.min(100, leadScore));\n  const leadPriority = leadScore >= 80 ? 'hot' : leadScore >= 60 ? 'warm' : 'nurture';\n  return { json: {\n    workflow_kind: 'global_advanced', lead_key: key(row), index: index + 1,\n    source_keyword: row.source_keyword || input.keyword || '', source_location: row.source_location || input.base_location || '',\n    title: row.title || '', category: row.primary_category || row.all_categories || '', all_categories: row.all_categories || '',\n    address: row.address || '', city: row.city || '', state: row.state || '', country: row.country || '', postal_code: row.postal_code || '',\n    phone: row.phone || '', website, email: emails, rating, review_count: reviewCount, google_maps_url: row.url || '',\n    lead_score: leadScore, lead_priority: leadPriority, crm_stage: leadPriority === 'hot' ? 'Qualified' : 'New',\n    recommended_action: leadPriority === 'hot' ? 'Call today and send personalized email.' : leadPriority === 'warm' ? 'Send email and call within 48 hours.' : 'Add to nurture and enrich later.',\n    company_summary: [row.title, row.primary_category, row.address, row.phone ? 'Phone: ' + row.phone : '', website ? 'Website: ' + website : ''].filter(Boolean).join(' | '),\n    scraped_at: row.scraped_at || new Date().toISOString(), raw: row\n  }};\n});"
       }
     },
     {
       "id": "remove-duplicates",
-      "name": "Remove Duplicates / ??",
+      "name": "Remove Duplicates / 去重",
       "type": "n8n-nodes-base.removeDuplicates",
       "typeVersion": 2,
       "position": [
@@ -312,7 +312,7 @@
     },
     {
       "id": "loop-over-leads",
-      "name": "Loop Leads / ????",
+      "name": "Loop Leads / 逐条线索",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
@@ -326,7 +326,7 @@
     },
     {
       "id": "ai-business-analysis",
-      "name": "AI Business Analysis / AI????",
+      "name": "AI Business Analysis / AI商业分析",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -360,7 +360,7 @@
     },
     {
       "id": "parse-ai-output",
-      "name": "Parse AI Output / ??AI??",
+      "name": "Parse AI Output / 解析AI输出",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -369,12 +369,12 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "return $input.all().map(item => {\n  const json = item.json;\n  const content = json.choices?.[0]?.message?.content || '';\n  const cleaned = content.replace(/^s*```jsons*/i, '').replace(/```s*$/,'').trim();\n  let ai = {};\n  try { ai = JSON.parse(cleaned); } catch (error) { ai = { raw_ai_output: content }; }\n  return { json: { ...($items('Loop Leads / ????')?.[0]?.json || {}), ai_persona: ai.persona || '', ai_pain_point: ai.pain_point || '', ai_pitch: ai.pitch || '', ai_next_step: ai.next_step || '', ai_risk: ai.risk || '', ai_raw: ai } };\n});"
+        "jsCode": "return $input.all().map(item => {\n  const json = item.json;\n  const content = json.choices?.[0]?.message?.content || '';\n  const cleaned = content.replace(/^s*```jsons*/i, '').replace(/```s*$/,'').trim();\n  let ai = {};\n  try { ai = JSON.parse(cleaned); } catch (error) { ai = { raw_ai_output: content }; }\n  return { json: { ...($items('Loop Leads / 逐条线索')?.[0]?.json || {}), ai_persona: ai.persona || '', ai_pain_point: ai.pain_point || '', ai_pitch: ai.pitch || '', ai_next_step: ai.next_step || '', ai_risk: ai.risk || '', ai_raw: ai } };\n});"
       }
     },
     {
       "id": "fetch-website",
-      "name": "Fetch Website / ????",
+      "name": "Fetch Website / 抓取网站",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -396,7 +396,7 @@
     },
     {
       "id": "extract-website-emails",
-      "name": "Extract Website Emails / ??????",
+      "name": "Extract Website Emails / 提取网站邮箱",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -405,12 +405,12 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "return $input.all().map(item => {\n  const source = JSON.stringify(item.json);\n  const matches = [...new Set((source.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+.[A-Z]{2,}/gi) || []).map(e => e.toLowerCase()))];\n  return { json: { ...($items('Loop Leads / ????')?.[0]?.json || item.json), discovered_emails: matches.join(', '), email_enrichment_status: matches.length ? 'found' : 'not_found' } };\n});"
+        "jsCode": "return $input.all().map(item => {\n  const source = JSON.stringify(item.json);\n  const matches = [...new Set((source.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+.[A-Z]{2,}/gi) || []).map(e => e.toLowerCase()))];\n  return { json: { ...($items('Loop Leads / 逐条线索')?.[0]?.json || item.json), discovered_emails: matches.join(', '), email_enrichment_status: matches.length ? 'found' : 'not_found' } };\n});"
       }
     },
     {
       "id": "route-by-priority",
-      "name": "Route by Priority / ??????",
+      "name": "Route by Priority / 按优先级分流",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
@@ -474,7 +474,7 @@
     },
     {
       "id": "noop-hot leads queue",
-      "name": "Hot Leads Queue / ?????",
+      "name": "Hot Leads Queue / 热线索队列",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
@@ -485,7 +485,7 @@
     },
     {
       "id": "noop-warm leads queue",
-      "name": "Warm Leads Queue / ?????",
+      "name": "Warm Leads Queue / 温线索队列",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
@@ -496,7 +496,7 @@
     },
     {
       "id": "noop-nurture queue",
-      "name": "Nurture Queue / ????",
+      "name": "Nurture Queue / 培育队列",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
@@ -507,7 +507,7 @@
     },
     {
       "id": "prepare-airtable-records",
-      "name": "Prepare Airtable Records / ??Airtable??",
+      "name": "Prepare Airtable Records / 准备Airtable记录",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -521,7 +521,7 @@
     },
     {
       "id": "prepare-google-sheets-rows",
-      "name": "Prepare Sheets Rows / ?????",
+      "name": "Prepare Sheets Rows / 准备表格行",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -535,7 +535,7 @@
     },
     {
       "id": "prepare-slack-alerts",
-      "name": "Prepare Slack Alerts / ??Slack??",
+      "name": "Prepare Slack Alerts / 准备Slack提醒",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -549,7 +549,7 @@
     },
     {
       "id": "prepare-notion-pages",
-      "name": "Prepare Notion Pages / ??Notion??",
+      "name": "Prepare Notion Pages / 准备Notion页面",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -563,7 +563,7 @@
     },
     {
       "id": "aggregate-campaign",
-      "name": "Aggregate Campaign / ????",
+      "name": "Aggregate Campaign / 聚合活动",
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
@@ -578,7 +578,7 @@
     },
     {
       "id": "markdown-report",
-      "name": "Markdown Report / Markdown??",
+      "name": "Markdown Report / Markdown报告",
       "type": "n8n-nodes-base.markdown",
       "typeVersion": 1,
       "position": [
@@ -592,7 +592,7 @@
     },
     {
       "id": "build-success-summary",
-      "name": "Success Summary / ????",
+      "name": "Success Summary / 成功摘要",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -601,12 +601,12 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const status = $items('Get Run Status / ????')?.[0]?.json ?? {};\nconst input = $items('Input Config / ????')?.[0]?.json ?? {};\nconst rows = $input.all().map(i => i.json);\nreturn [{ json: { outcome: 'success', workflow_kind: 'global_advanced', run_slug: $items('Start CoreClaw Run / ??CoreClaw')?.[0]?.json?.run_slug || '', run_status: status.status, coreclaw_result_count: status.results, returned_items: rows.length, hot_leads: rows.filter(r => r.lead_priority === 'hot').length, warm_leads: rows.filter(r => r.lead_priority === 'warm').length, keyword: input.keyword, base_location: input.base_location, business_value: 'CoreClaw plus n8n enrichment pipeline with AI, routing, destination payloads, and verification summary.', sample_results: rows.slice(0, 3), verified_at: new Date().toISOString() }}];"
+        "jsCode": "const status = $items('Get Run Status / 获取状态')?.[0]?.json ?? {};\nconst input = $items('Input Config / 输入配置')?.[0]?.json ?? {};\nconst rows = $input.all().map(i => i.json);\nreturn [{ json: { outcome: 'success', workflow_kind: 'global_advanced', run_slug: $items('Start CoreClaw Run / 启动CoreClaw')?.[0]?.json?.run_slug || '', run_status: status.status, coreclaw_result_count: status.results, returned_items: rows.length, hot_leads: rows.filter(r => r.lead_priority === 'hot').length, warm_leads: rows.filter(r => r.lead_priority === 'warm').length, keyword: input.keyword, base_location: input.base_location, business_value: 'CoreClaw plus n8n enrichment pipeline with AI, routing, destination payloads, and verification summary.', sample_results: rows.slice(0, 3), verified_at: new Date().toISOString() }}];"
       }
     },
     {
       "id": "build-failure-summary",
-      "name": "Failure Summary / ????",
+      "name": "Failure Summary / 失败摘要",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -615,16 +615,16 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const status = $items('Get Run Status / ????')?.[0]?.json ?? {};\nreturn [{ json: { outcome: 'failure', workflow_kind: 'global_advanced', run_slug: $items('Start CoreClaw Run / ??CoreClaw')?.[0]?.json?.run_slug || '', run_status: status.status, run_error_message: status.err_msg || '', verified_at: new Date().toISOString() }}];"
+        "jsCode": "const status = $items('Get Run Status / 获取状态')?.[0]?.json ?? {};\nreturn [{ json: { outcome: 'failure', workflow_kind: 'global_advanced', run_slug: $items('Start CoreClaw Run / 启动CoreClaw')?.[0]?.json?.run_slug || '', run_status: status.status, run_error_message: status.err_msg || '', verified_at: new Date().toISOString() }}];"
       }
     }
   ],
   "connections": {
-    "Manual Trigger / ????": {
+    "Manual Trigger / 手动启动": {
       "main": [
         [
           {
-            "node": "Input Config / ????",
+            "node": "Input Config / 输入配置",
             "type": "main",
             "index": 0
           }
@@ -632,11 +632,11 @@
         []
       ]
     },
-    "Input Config / ????": {
+    "Input Config / 输入配置": {
       "main": [
         [
           {
-            "node": "Start CoreClaw Run / ??CoreClaw",
+            "node": "Start CoreClaw Run / 启动CoreClaw",
             "type": "main",
             "index": 0
           }
@@ -644,11 +644,11 @@
         []
       ]
     },
-    "Start CoreClaw Run / ??CoreClaw": {
+    "Start CoreClaw Run / 启动CoreClaw": {
       "main": [
         [
           {
-            "node": "Wait Before Poll / ????",
+            "node": "Wait Before Poll / 等待轮询",
             "type": "main",
             "index": 0
           }
@@ -656,11 +656,11 @@
         []
       ]
     },
-    "Wait Before Poll / ????": {
+    "Wait Before Poll / 等待轮询": {
       "main": [
         [
           {
-            "node": "Get Run Status / ????",
+            "node": "Get Run Status / 获取状态",
             "type": "main",
             "index": 0
           }
@@ -668,11 +668,11 @@
         []
       ]
     },
-    "Get Run Status / ????": {
+    "Get Run Status / 获取状态": {
       "main": [
         [
           {
-            "node": "If Terminal / ????",
+            "node": "If Terminal / 是否结束",
             "type": "main",
             "index": 0
           }
@@ -680,47 +680,47 @@
         []
       ]
     },
-    "If Terminal / ????": {
+    "If Terminal / 是否结束": {
       "main": [
         [
           {
-            "node": "If Success / ????",
+            "node": "If Success / 是否成功",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Wait Before Poll / ????",
+            "node": "Wait Before Poll / 等待轮询",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "If Success / ????": {
+    "If Success / 是否成功": {
       "main": [
         [
           {
-            "node": "Get Run Results / ????",
+            "node": "Get Run Results / 获取结果",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Failure Summary / ????",
+            "node": "Failure Summary / 失败摘要",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get Run Results / ????": {
+    "Get Run Results / 获取结果": {
       "main": [
         [
           {
-            "node": "Normalize Leads / ?????",
+            "node": "Normalize Leads / 规范化线索",
             "type": "main",
             "index": 0
           }
@@ -728,11 +728,11 @@
         []
       ]
     },
-    "Normalize Leads / ?????": {
+    "Normalize Leads / 规范化线索": {
       "main": [
         [
           {
-            "node": "Remove Duplicates / ??",
+            "node": "Remove Duplicates / 去重",
             "type": "main",
             "index": 0
           }
@@ -740,11 +740,11 @@
         []
       ]
     },
-    "Remove Duplicates / ??": {
+    "Remove Duplicates / 去重": {
       "main": [
         [
           {
-            "node": "Loop Leads / ????",
+            "node": "Loop Leads / 逐条线索",
             "type": "main",
             "index": 0
           }
@@ -752,11 +752,11 @@
         []
       ]
     },
-    "Loop Leads / ????": {
+    "Loop Leads / 逐条线索": {
       "main": [
         [
           {
-            "node": "AI Business Analysis / AI????",
+            "node": "AI Business Analysis / AI商业分析",
             "type": "main",
             "index": 0
           }
@@ -764,11 +764,11 @@
         []
       ]
     },
-    "AI Business Analysis / AI????": {
+    "AI Business Analysis / AI商业分析": {
       "main": [
         [
           {
-            "node": "Parse AI Output / ??AI??",
+            "node": "Parse AI Output / 解析AI输出",
             "type": "main",
             "index": 0
           }
@@ -776,11 +776,11 @@
         []
       ]
     },
-    "Parse AI Output / ??AI??": {
+    "Parse AI Output / 解析AI输出": {
       "main": [
         [
           {
-            "node": "Fetch Website / ????",
+            "node": "Fetch Website / 抓取网站",
             "type": "main",
             "index": 0
           }
@@ -788,11 +788,11 @@
         []
       ]
     },
-    "Fetch Website / ????": {
+    "Fetch Website / 抓取网站": {
       "main": [
         [
           {
-            "node": "Extract Website Emails / ??????",
+            "node": "Extract Website Emails / 提取网站邮箱",
             "type": "main",
             "index": 0
           }
@@ -800,11 +800,11 @@
         []
       ]
     },
-    "Extract Website Emails / ??????": {
+    "Extract Website Emails / 提取网站邮箱": {
       "main": [
         [
           {
-            "node": "Route by Priority / ??????",
+            "node": "Route by Priority / 按优先级分流",
             "type": "main",
             "index": 0
           }
@@ -812,36 +812,36 @@
         []
       ]
     },
-    "Route by Priority / ??????": {
+    "Route by Priority / 按优先级分流": {
       "main": [
         [
           {
-            "node": "Hot Leads Queue / ?????",
+            "node": "Hot Leads Queue / 热线索队列",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Warm Leads Queue / ?????",
+            "node": "Warm Leads Queue / 温线索队列",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Nurture Queue / ????",
+            "node": "Nurture Queue / 培育队列",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Hot Leads Queue / ?????": {
+    "Hot Leads Queue / 热线索队列": {
       "main": [
         [
           {
-            "node": "Prepare Airtable Records / ??Airtable??",
+            "node": "Prepare Airtable Records / 准备Airtable记录",
             "type": "main",
             "index": 0
           }
@@ -849,11 +849,11 @@
         []
       ]
     },
-    "Prepare Airtable Records / ??Airtable??": {
+    "Prepare Airtable Records / 准备Airtable记录": {
       "main": [
         [
           {
-            "node": "Prepare Sheets Rows / ?????",
+            "node": "Prepare Sheets Rows / 准备表格行",
             "type": "main",
             "index": 0
           }
@@ -861,11 +861,11 @@
         []
       ]
     },
-    "Prepare Sheets Rows / ?????": {
+    "Prepare Sheets Rows / 准备表格行": {
       "main": [
         [
           {
-            "node": "Prepare Slack Alerts / ??Slack??",
+            "node": "Prepare Slack Alerts / 准备Slack提醒",
             "type": "main",
             "index": 0
           }
@@ -873,11 +873,11 @@
         []
       ]
     },
-    "Prepare Slack Alerts / ??Slack??": {
+    "Prepare Slack Alerts / 准备Slack提醒": {
       "main": [
         [
           {
-            "node": "Prepare Notion Pages / ??Notion??",
+            "node": "Prepare Notion Pages / 准备Notion页面",
             "type": "main",
             "index": 0
           }
@@ -885,11 +885,11 @@
         []
       ]
     },
-    "Prepare Notion Pages / ??Notion??": {
+    "Prepare Notion Pages / 准备Notion页面": {
       "main": [
         [
           {
-            "node": "Aggregate Campaign / ????",
+            "node": "Aggregate Campaign / 聚合活动",
             "type": "main",
             "index": 0
           }
@@ -897,11 +897,11 @@
         []
       ]
     },
-    "Aggregate Campaign / ????": {
+    "Aggregate Campaign / 聚合活动": {
       "main": [
         [
           {
-            "node": "Markdown Report / Markdown??",
+            "node": "Markdown Report / Markdown报告",
             "type": "main",
             "index": 0
           }
@@ -909,11 +909,11 @@
         []
       ]
     },
-    "Markdown Report / Markdown??": {
+    "Markdown Report / Markdown报告": {
       "main": [
         [
           {
-            "node": "Success Summary / ????",
+            "node": "Success Summary / 成功摘要",
             "type": "main",
             "index": 0
           }

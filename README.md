@@ -1,15 +1,14 @@
 # CoreClaw n8n Commercial Workflow Pack
 
-This repository provides mature CoreClaw-first n8n workflows for lead generation, ecommerce intelligence, social account intelligence, reputation monitoring, and sales operations. Each workflow contains bilingual node names and detailed sticky notes in English and Chinese.
+This repository provides mature CoreClaw-first n8n workflows. Every workflow includes bilingual node names and detailed English/Chinese sticky notes.
 
 ## Setup
 
 1. Import the JSON workflow into n8n.
 2. Select your CoreClaw API credential on each CoreClaw node.
-3. If the workflow uses AI, replace `YOUR_LLM_API_KEY` in HTTP Request nodes or move it into a credential.
-4. Edit `Input Config / ????`.
-5. Run manually and inspect `Success Summary / ????`.
-6. Connect real Google Sheets, Airtable, Slack, Notion, Gmail, or CRM nodes to the prepared payload nodes.
+3. Replace `YOUR_LLM_API_KEY` in HTTP Request nodes if AI is used.
+4. Edit `Input Config / 输入配置`.
+5. Run manually and inspect `Success Summary / 成功摘要`.
 
 ## Workflow Map
 
@@ -24,10 +23,8 @@ mindmap
       Global Prospecting
     Amazon
       Product Intelligence
-      Competitor Monitoring
     Instagram
       Profile Intelligence
-      Partnership Discovery
     Destinations
       Sheets
       Airtable
@@ -38,266 +35,257 @@ mindmap
 
 ## Workflows
 
-### CoreClaw???? / Maps Leads
+### CoreClaw地图线索 / Maps Leads
 
 - **File:** `coreclaw-gmaps-leads-simple.json`
-- **Use case:** Local business leads
-- **Parameter example:** `keyword=dentist; base_location=Austin, Texas, USA; max_results=3`
+- **Use case:** Google Maps local lead scraping
+- **Parameter example:** `keyword=dentist, base_location=Austin, Texas, USA, max_results=3`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
 
-### CoreClaw???? / Maps Email
+### CoreClaw地图邮箱 / Maps Email
 
 - **File:** `coreclaw-gmaps-leads-email-extraction-simple.json`
-- **Use case:** Lead email discovery
-- **Parameter example:** `keyword=dentist; base_location=Austin, Texas, USA; max_results=3`
+- **Use case:** Google Maps leads with website email discovery
+- **Parameter example:** `keyword=dentist, base_location=Austin, Texas, USA, max_results=3`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
 
-### CoreClaw B2B?? / B2B Enrich
+### CoreClaw B2B增强 / B2B Enrich
 
 - **File:** `coreclaw-gmaps-b2b-enrichment-simple.json`
-- **Use case:** B2B AI enrichment
-- **Parameter example:** `keyword=dentist; base_location=Austin, Texas, USA; max_results=3`
+- **Use case:** B2B lead enrichment with AI analysis
+- **Parameter example:** `keyword=dentist, base_location=Austin, Texas, USA, max_results=3`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
 
-### CoreClaw???? / Reviews Monitor
+### CoreClaw评论监控 / Reviews Monitor
 
 - **File:** `coreclaw-gmaps-reviews-monitor-simple.json`
-- **Use case:** Review monitoring
-- **Parameter example:** `keyword=dentist; base_location=Austin, Texas, USA; max_results=2; max_reviews_per_place=3`
+- **Use case:** Review and reputation monitoring
+- **Parameter example:** `keyword=dentist, base_location=Austin, Texas, USA, max_results=2, max_reviews_per_place=3`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
 
-### CoreClaw???? / Sheets Leads
+### CoreClaw表格线索 / Sheets Leads
 
 - **File:** `coreclaw-gmaps-to-sheets.json`
-- **Use case:** Sheets-ready lead ops
-- **Parameter example:** `keyword=dentist; base_location=Austin, Texas, USA; max_results=3`
+- **Use case:** Advanced Sheets-ready lead operations
+- **Parameter example:** `keyword=dentist, base_location=Austin, Texas, USA, max_results=3`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
 
-### CoreClaw???? / Email Outreach
+### CoreClaw外联线索 / Email Outreach
 
 - **File:** `coreclaw-gmaps-leads-email-extraction.json`
-- **Use case:** AI outreach pipeline
-- **Parameter example:** `keyword=dentist; base_location=Austin, Texas, USA; fetch_social_info=true`
+- **Use case:** Advanced email outreach pipeline
+- **Parameter example:** `keyword=dentist, base_location=Austin, Texas, USA, fetch_social_info=true`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
 
-### CoreClaw Airtable?? / Airtable Pipeline
+### CoreClaw Airtable管道 / Airtable Pipeline
 
 - **File:** `coreclaw-gmaps-airtable-email.json`
-- **Use case:** Airtable CRM pipeline
-- **Parameter example:** `keyword=dentist; base_location=Austin, Texas, USA; max_results=3`
+- **Use case:** Airtable/CRM lead pipeline
+- **Parameter example:** `keyword=dentist, base_location=Austin, Texas, USA, max_results=3`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
 
-### CoreClaw?????? / Lead Ops
+### CoreClaw完整线索运营 / Lead Ops
 
 - **File:** `coreclaw-gmaps-leads-complete-enhanced.json`
-- **Use case:** Complete lead operations
-- **Parameter example:** `keyword=dentist; base_location=Austin, Texas, USA; max_results=3`
+- **Use case:** Complete multi-destination lead operations
+- **Parameter example:** `keyword=dentist, base_location=Austin, Texas, USA, max_results=3`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
 
-### CoreClaw???? / Reputation Ops
+### CoreClaw口碑运营 / Reputation Ops
 
 - **File:** `coreclaw-gmaps-reviews-monitor.json`
-- **Use case:** Advanced reputation ops
-- **Parameter example:** `keyword=dentist; base_location=Austin, Texas, USA; fetch_reviews=true`
+- **Use case:** Advanced reputation operations
+- **Parameter example:** `keyword=dentist, base_location=Austin, Texas, USA, fetch_reviews=true`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
 
-### CoreClaw???? / Global Prospecting
+### CoreClaw全球拓客 / Global Prospecting
 
 - **File:** `coreclaw-google-maps-leads-complete-global.json`
-- **Use case:** Global prospecting
-- **Parameter example:** `keyword=restaurant; base_location=Singapore; max_results=3`
+- **Use case:** Global local-business prospecting
+- **Parameter example:** `keyword=restaurant, base_location=Singapore, max_results=3`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
 
-### CoreClaw????? / Amazon Intel
+### CoreClaw亚马逊情报 / Amazon Intel
 
 - **File:** `coreclaw-amazon-product-intelligence.json`
 - **Use case:** Amazon product intelligence
-- **Parameter example:** `domain=https://www.amazon.com; keyword=coffee grinder; limit=3`
+- **Parameter example:** `domain=https://www.amazon.com, keyword=coffee grinder, limit=3`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
 
-### CoreClaw Instagram???? / Instagram Intel
+### CoreClaw Instagram账号情报 / Instagram Intel
 
 - **File:** `coreclaw-instagram-profile-intelligence.json`
 - **Use case:** Instagram profile intelligence
-- **Parameter example:** `username=instagram; limit=1`
+- **Parameter example:** `username=instagram, limit=1`
 - **How it helps:** Converts raw CoreClaw data into scored, deduplicated, business-ready records with reporting and downstream payloads.
 
 ```mermaid
 flowchart LR
-  A["Trigger / ??"] --> B["Input Config / ????"]
-  B --> C["CoreClaw Run / CoreClaw??"]
-  C --> D["Poll Status / ????"]
-  D --> E{"Succeeded? / ????"}
-  E -->|"Yes / ?"| F["Get Results / ????"]
-  E -->|"No / ?"| X["Failure Summary / ????"]
-  F --> G["Normalize + Deduplicate / ???+??"]
-  G --> H["AI or Enrichment / AI???"]
-  H --> I["Payloads + Report / ??+??"]
-  I --> J["Success Summary / ????"]
+  A["Trigger / 触发"] --> B["Input Config / 输入配置"]
+  B --> C["CoreClaw Run / 启动CoreClaw"]
+  C --> D["Poll Status / 等待并轮询"]
+  D --> E{"Succeeded? / 成功摘要?"}
+  E -->|"Yes / 是"| F["Get Results / 获取结果"]
+  E -->|"No / 否"| X["Failure Summary / 失败摘要"]
+  F --> G["Normalize + Deduplicate / 规范化并去重"]
+  G --> H["AI or Enrichment / AI或增强处理"]
+  H --> I["Payloads + Report / 准备载荷并生成报告"]
+  I --> J["Success Summary / 成功摘要"]
 ```
-
-## Parameter Guide
-
-- `keyword`: Business category, product keyword, or search topic. Example: `dentist`, `restaurant`, `coffee grinder`.
-- `base_location`: Location for Google Maps workflows. Example: `Austin, Texas, USA`.
-- `max_results` / `limit`: Keep low during testing, then increase gradually.
-- `wait_seconds`: Polling interval. Use larger values for bigger jobs.
-- `domain`: Amazon marketplace domain, e.g. `https://www.amazon.com`.
-- `username`: Instagram username without @.
 
 ## Security
 
