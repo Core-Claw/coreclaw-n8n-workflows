@@ -3,7 +3,7 @@
   "nodes": [
     {
       "id": "note-overview",
-      "name": "Overview / ??",
+      "name": "Overview / 概览",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -18,7 +18,7 @@
     },
     {
       "id": "note-parameters",
-      "name": "Parameters / ??",
+      "name": "Parameters / 参数",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -26,14 +26,14 @@
         -520
       ],
       "parameters": {
-        "content": "## Parameters / ????\n\nEdit **Input Config / ????** before running.\n\n**Example / ???**\n`domain=https://www.amazon.com, keyword=coffee grinder, limit=3`\n\n**Tips / ???**\n- Start with low limits for testing.\n- Increase wait_seconds for larger jobs.\n- Select your CoreClaw credential on each CoreClaw node after import.\n- ?????????????\n- ???????? wait_seconds?\n- ????? CoreClaw ?????????",
+        "content": "## Parameters / 参数??\n\nEdit **Input Config / 输入配置** before running.\n\n**Example / ???**\n`domain=https://www.amazon.com, keyword=coffee grinder, limit=3`\n\n**Tips / ???**\n- Start with low limits for testing.\n- Increase wait_seconds for larger jobs.\n- Select your CoreClaw credential on each CoreClaw node after import.\n- ?????????????\n- ???????? wait_seconds?\n- ????? CoreClaw ?????????",
         "width": 700,
         "height": 380
       }
     },
     {
       "id": "note-flow",
-      "name": "Flow / ??",
+      "name": "Flow / 流程",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -41,14 +41,14 @@
         -120
       ],
       "parameters": {
-        "content": "## Flow / ??\n\n1. Trigger / ??\n2. Input Config / ????\n3. Start CoreClaw Run / ?? CoreClaw\n4. Wait + Poll / ?????\n5. Get Results / ????\n6. Normalize + Deduplicate / ??????\n7. AI or Enrichment / AI?????\n8. Prepare Payloads + Report / ?????????\n\nUse **Success Summary / ????** to inspect final output.\n?? **Success Summary / ????** ???????",
+        "content": "## Flow / 流程\n\n1. Trigger / ??\n2. Input Config / 输入配置\n3. Start CoreClaw Run / ?? CoreClaw\n4. Wait + Poll / ?????\n5. Get Results / ????\n6. Normalize + Deduplicate / ??????\n7. AI or Enrichment / AI?????\n8. Prepare Payloads + Report / ?????????\n\nUse **Success Summary / 成功摘要** to inspect final output.\n?? **Success Summary / 成功摘要** ???????",
         "width": 760,
         "height": 360
       }
     },
     {
       "id": "note-output",
-      "name": "Outputs / ??",
+      "name": "Outputs / 输出",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -63,7 +63,7 @@
     },
     {
       "id": "manual-trigger",
-      "name": "Manual Trigger / ????",
+      "name": "Manual Trigger / 手动启动",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
@@ -74,7 +74,7 @@
     },
     {
       "id": "input-config",
-      "name": "Input Config / ????",
+      "name": "Input Config / 输入配置",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
@@ -115,7 +115,7 @@
     },
     {
       "id": "start-coreclaw-run",
-      "name": "Start CoreClaw Run / ??CoreClaw",
+      "name": "Start CoreClaw Run / 启动CoreClaw",
       "type": "n8n-nodes-coreclaw.coreClaw",
       "typeVersion": 1,
       "position": [
@@ -141,7 +141,7 @@
     },
     {
       "id": "wait-before-next-poll",
-      "name": "Wait Before Poll / ????",
+      "name": "Wait Before Poll / 等待轮询",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
@@ -156,7 +156,7 @@
     },
     {
       "id": "get-run-status",
-      "name": "Get Run Status / ????",
+      "name": "Get Run Status / 获取状态",
       "type": "n8n-nodes-coreclaw.coreClaw",
       "typeVersion": 1,
       "position": [
@@ -166,7 +166,7 @@
       "parameters": {
         "resource": "run",
         "operation": "get",
-        "runSlug": "={{ $('Start CoreClaw Run / ??CoreClaw').item.json.run_slug }}"
+        "runSlug": "={{ $('Start CoreClaw Run / 启动CoreClaw').item.json.run_slug }}"
       },
       "retryOnFail": true,
       "maxTries": 3,
@@ -176,7 +176,7 @@
     },
     {
       "id": "if-terminal",
-      "name": "If Terminal / ????",
+      "name": "If Terminal / 是否结束",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -209,7 +209,7 @@
     },
     {
       "id": "if-success",
-      "name": "If Success / ????",
+      "name": "If Success / 是否成功",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -242,7 +242,7 @@
     },
     {
       "id": "get-run-results",
-      "name": "Get Run Results / ????",
+      "name": "Get Run Results / 获取结果",
       "type": "n8n-nodes-coreclaw.coreClaw",
       "typeVersion": 1,
       "position": [
@@ -252,9 +252,9 @@
       "parameters": {
         "resource": "run",
         "operation": "getResults",
-        "runSlug": "={{ $('Start CoreClaw Run / ??CoreClaw').item.json.run_slug }}",
+        "runSlug": "={{ $('Start CoreClaw Run / 启动CoreClaw').item.json.run_slug }}",
         "returnAll": false,
-        "limit": "={{ Number($items(\"Input Config / ????\")?.[0]?.json?.limit || 10) }}"
+        "limit": "={{ Number($items(\"Input Config / 输入配置\")?.[0]?.json?.limit || 10) }}"
       },
       "retryOnFail": true,
       "maxTries": 3,
@@ -264,7 +264,7 @@
     },
     {
       "id": "normalize-records",
-      "name": "Normalize Records / ???",
+      "name": "Normalize Records / 规范化记录",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -273,12 +273,12 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const input=$items('Input Config / ????')?.[0]?.json||{}; return $input.all().map((item,index)=>{const r=item.json; const price=Number(String(r.price||r.final_price||'').replace(/[^0-9.]/g,''))||0; const rating=Number(r.rating||r.stars||0); const reviews=Number(String(r.reviews_count||r.review_count||'').replace(/[^0-9]/g,''))||0; const score=Math.min(100,Math.round((rating*12)+(reviews>1000?25:reviews>100?15:5)+(price?10:0))); return {json:{record_key:String(r.asin||r.url||r.title||index).toLowerCase(),workflow_kind:'amazon_product_intel',title:r.title||'',brand:r.brand||'',seller_name:r.seller_name||'',price,rating,review_count:reviews,url:r.url||r.product_url||'',keyword:input.keyword,opportunity_score:score,priority:score>=75?'high':'normal',action:score>=75?'Review pricing and positioning today.':'Track as benchmark product.',raw:r}}});"
+        "jsCode": "const input=$items('Input Config / 输入配置')?.[0]?.json||{}; return $input.all().map((item,index)=>{const r=item.json; const price=Number(String(r.price||r.final_price||'').replace(/[^0-9.]/g,''))||0; const rating=Number(r.rating||r.stars||0); const reviews=Number(String(r.reviews_count||r.review_count||'').replace(/[^0-9]/g,''))||0; const score=Math.min(100,Math.round((rating*12)+(reviews>1000?25:reviews>100?15:5)+(price?10:0))); return {json:{record_key:String(r.asin||r.url||r.title||index).toLowerCase(),workflow_kind:'amazon_product_intel',title:r.title||'',brand:r.brand||'',seller_name:r.seller_name||'',price,rating,review_count:reviews,url:r.url||r.product_url||'',keyword:input.keyword,opportunity_score:score,priority:score>=75?'high':'normal',action:score>=75?'Review pricing and positioning today.':'Track as benchmark product.',raw:r}}});"
       }
     },
     {
       "id": "remove-duplicates",
-      "name": "Remove Duplicates / ??",
+      "name": "Remove Duplicates / 去重",
       "type": "n8n-nodes-base.removeDuplicates",
       "typeVersion": 2,
       "position": [
@@ -293,7 +293,7 @@
     },
     {
       "id": "loop-items",
-      "name": "Loop Items / ????",
+      "name": "Loop Items / 逐条处理",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
@@ -307,7 +307,7 @@
     },
     {
       "id": "ai-analysis",
-      "name": "AI Analysis / AI??",
+      "name": "AI Analysis / AI分析",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -340,7 +340,7 @@
     },
     {
       "id": "parse-ai",
-      "name": "Parse AI / ??AI",
+      "name": "Parse AI / 解析AI",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -349,12 +349,12 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "return $input.all().map(item=>{const content=item.json.choices?.[0]?.message?.content||''; const cleaned=content.replace(/^s*```jsons*/i,'').replace(/```s*$/,'').trim(); let ai={}; try{ai=JSON.parse(cleaned)}catch(e){ai={raw:content}} const base=$items('Loop Items / ????')?.[0]?.json||{}; return {json:{...base,ai_opportunity:ai.opportunity||'',ai_risk:ai.risk||'',ai_action:ai.action||'',ai_priority:ai.priority||base.priority||'',ai_raw:ai}}})"
+        "jsCode": "return $input.all().map(item=>{const content=item.json.choices?.[0]?.message?.content||''; const cleaned=content.replace(/^s*```jsons*/i,'').replace(/```s*$/,'').trim(); let ai={}; try{ai=JSON.parse(cleaned)}catch(e){ai={raw:content}} const base=$items('Loop Items / 逐条处理')?.[0]?.json||{}; return {json:{...base,ai_opportunity:ai.opportunity||'',ai_risk:ai.risk||'',ai_action:ai.action||'',ai_priority:ai.priority||base.priority||'',ai_raw:ai}}})"
       }
     },
     {
       "id": "route-priority",
-      "name": "Route Priority / ?????",
+      "name": "Route Priority / 优先级分流",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
@@ -396,7 +396,7 @@
     },
     {
       "id": "noop-high-priority-queue-",
-      "name": "High Priority Queue / ??????",
+      "name": "High Priority Queue / 高优先级队列",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
@@ -407,7 +407,7 @@
     },
     {
       "id": "noop-normal-queue-",
-      "name": "Normal Queue / ????",
+      "name": "Normal Queue / 普通队列",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
@@ -418,7 +418,7 @@
     },
     {
       "id": "prepare-payloads",
-      "name": "Prepare Payloads / ????",
+      "name": "Prepare Payloads / 准备载荷",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -432,7 +432,7 @@
     },
     {
       "id": "aggregate-results",
-      "name": "Aggregate Results / ????",
+      "name": "Aggregate Results / 聚合结果",
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
@@ -447,7 +447,7 @@
     },
     {
       "id": "markdown-report",
-      "name": "Markdown Report / Markdown??",
+      "name": "Markdown Report / Markdown报告",
       "type": "n8n-nodes-base.markdown",
       "typeVersion": 1,
       "position": [
@@ -461,7 +461,7 @@
     },
     {
       "id": "success-summary",
-      "name": "Success Summary / ????",
+      "name": "Success Summary / 成功摘要",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -470,12 +470,12 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const rows=$input.all().map(i=>i.json); const st=$items('Get Run Status / ????')?.[0]?.json||{}; return [{json:{outcome:'success',workflow_name:'CoreClaw Amazon Product Intel / ???????',run_slug:$items('Start CoreClaw Run / ??CoreClaw')?.[0]?.json?.run_slug||'',run_status:st.status,result_count:st.results,returned_items:rows.length,commercial_value:'Business-ready CoreClaw workflow with AI analysis, routing, payloads, and reporting.',sample:rows.slice(0,3),verified_at:new Date().toISOString()}}];"
+        "jsCode": "const rows=$input.all().map(i=>i.json); const st=$items('Get Run Status / 获取状态')?.[0]?.json||{}; return [{json:{outcome:'success',workflow_name:'CoreClaw Amazon Product Intel / ???????',run_slug:$items('Start CoreClaw Run / 启动CoreClaw')?.[0]?.json?.run_slug||'',run_status:st.status,result_count:st.results,returned_items:rows.length,commercial_value:'Business-ready CoreClaw workflow with AI analysis, routing, payloads, and reporting.',sample:rows.slice(0,3),verified_at:new Date().toISOString()}}];"
       }
     },
     {
       "id": "failure-summary",
-      "name": "Failure Summary / ????",
+      "name": "Failure Summary / 失败摘要",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -484,16 +484,16 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const st=$items('Get Run Status / ????')?.[0]?.json||{}; return [{json:{outcome:'failure',workflow_name:'CoreClaw Amazon Product Intel / ???????',run_status:st.status,error:st.err_msg||'',verified_at:new Date().toISOString()}}];"
+        "jsCode": "const st=$items('Get Run Status / 获取状态')?.[0]?.json||{}; return [{json:{outcome:'failure',workflow_name:'CoreClaw Amazon Product Intel / ???????',run_status:st.status,error:st.err_msg||'',verified_at:new Date().toISOString()}}];"
       }
     }
   ],
   "connections": {
-    "Manual Trigger / ????": {
+    "Manual Trigger / 手动启动": {
       "main": [
         [
           {
-            "node": "Input Config / ????",
+            "node": "Input Config / 输入配置",
             "type": "main",
             "index": 0
           }
@@ -501,11 +501,11 @@
         []
       ]
     },
-    "Input Config / ????": {
+    "Input Config / 输入配置": {
       "main": [
         [
           {
-            "node": "Start CoreClaw Run / ??CoreClaw",
+            "node": "Start CoreClaw Run / 启动CoreClaw",
             "type": "main",
             "index": 0
           }
@@ -513,11 +513,11 @@
         []
       ]
     },
-    "Start CoreClaw Run / ??CoreClaw": {
+    "Start CoreClaw Run / 启动CoreClaw": {
       "main": [
         [
           {
-            "node": "Wait Before Poll / ????",
+            "node": "Wait Before Poll / 等待轮询",
             "type": "main",
             "index": 0
           }
@@ -525,11 +525,11 @@
         []
       ]
     },
-    "Wait Before Poll / ????": {
+    "Wait Before Poll / 等待轮询": {
       "main": [
         [
           {
-            "node": "Get Run Status / ????",
+            "node": "Get Run Status / 获取状态",
             "type": "main",
             "index": 0
           }
@@ -537,11 +537,11 @@
         []
       ]
     },
-    "Get Run Status / ????": {
+    "Get Run Status / 获取状态": {
       "main": [
         [
           {
-            "node": "If Terminal / ????",
+            "node": "If Terminal / 是否结束",
             "type": "main",
             "index": 0
           }
@@ -549,47 +549,47 @@
         []
       ]
     },
-    "If Terminal / ????": {
+    "If Terminal / 是否结束": {
       "main": [
         [
           {
-            "node": "If Success / ????",
+            "node": "If Success / 是否成功",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Wait Before Poll / ????",
+            "node": "Wait Before Poll / 等待轮询",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "If Success / ????": {
+    "If Success / 是否成功": {
       "main": [
         [
           {
-            "node": "Get Run Results / ????",
+            "node": "Get Run Results / 获取结果",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Failure Summary / ????",
+            "node": "Failure Summary / 失败摘要",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get Run Results / ????": {
+    "Get Run Results / 获取结果": {
       "main": [
         [
           {
-            "node": "Normalize Records / ???",
+            "node": "Normalize Records / 规范化记录",
             "type": "main",
             "index": 0
           }
@@ -597,11 +597,11 @@
         []
       ]
     },
-    "Normalize Records / ???": {
+    "Normalize Records / 规范化记录": {
       "main": [
         [
           {
-            "node": "Remove Duplicates / ??",
+            "node": "Remove Duplicates / 去重",
             "type": "main",
             "index": 0
           }
@@ -609,11 +609,11 @@
         []
       ]
     },
-    "Remove Duplicates / ??": {
+    "Remove Duplicates / 去重": {
       "main": [
         [
           {
-            "node": "Loop Items / ????",
+            "node": "Loop Items / 逐条处理",
             "type": "main",
             "index": 0
           }
@@ -621,11 +621,11 @@
         []
       ]
     },
-    "Loop Items / ????": {
+    "Loop Items / 逐条处理": {
       "main": [
         [
           {
-            "node": "AI Analysis / AI??",
+            "node": "AI Analysis / AI分析",
             "type": "main",
             "index": 0
           }
@@ -633,11 +633,11 @@
         []
       ]
     },
-    "AI Analysis / AI??": {
+    "AI Analysis / AI分析": {
       "main": [
         [
           {
-            "node": "Parse AI / ??AI",
+            "node": "Parse AI / 解析AI",
             "type": "main",
             "index": 0
           }
@@ -645,11 +645,11 @@
         []
       ]
     },
-    "Parse AI / ??AI": {
+    "Parse AI / 解析AI": {
       "main": [
         [
           {
-            "node": "Route Priority / ?????",
+            "node": "Route Priority / 优先级分流",
             "type": "main",
             "index": 0
           }
@@ -657,29 +657,29 @@
         []
       ]
     },
-    "Route Priority / ?????": {
+    "Route Priority / 优先级分流": {
       "main": [
         [
           {
-            "node": "High Priority Queue / ??????",
+            "node": "High Priority Queue / 高优先级队列",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Normal Queue / ????",
+            "node": "Normal Queue / 普通队列",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "High Priority Queue / ??????": {
+    "High Priority Queue / 高优先级队列": {
       "main": [
         [
           {
-            "node": "Prepare Payloads / ????",
+            "node": "Prepare Payloads / 准备载荷",
             "type": "main",
             "index": 0
           }
@@ -687,11 +687,11 @@
         []
       ]
     },
-    "Prepare Payloads / ????": {
+    "Prepare Payloads / 准备载荷": {
       "main": [
         [
           {
-            "node": "Aggregate Results / ????",
+            "node": "Aggregate Results / 聚合结果",
             "type": "main",
             "index": 0
           }
@@ -699,11 +699,11 @@
         []
       ]
     },
-    "Aggregate Results / ????": {
+    "Aggregate Results / 聚合结果": {
       "main": [
         [
           {
-            "node": "Markdown Report / Markdown??",
+            "node": "Markdown Report / Markdown报告",
             "type": "main",
             "index": 0
           }
@@ -711,11 +711,11 @@
         []
       ]
     },
-    "Markdown Report / Markdown??": {
+    "Markdown Report / Markdown报告": {
       "main": [
         [
           {
-            "node": "Success Summary / ????",
+            "node": "Success Summary / 成功摘要",
             "type": "main",
             "index": 0
           }
