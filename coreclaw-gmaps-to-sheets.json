@@ -1,69 +1,9 @@
 {
-  "name": "CoreClaw表格线索 / Sheets Leads",
+  "name": "CoreClaw Sheets Leads",
   "nodes": [
     {
-      "id": "note-overview",
-      "name": "Overview / 概览",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -1700,
-        -520
-      ],
-      "parameters": {
-        "content": "## CoreClaw表格线索 / Sheets Leads\n\n**Purpose (EN):** Advanced Sheets-ready lead operations.\n\n**用途:** 高级表格线索运营.\n\nThis workflow uses the official CoreClaw node as the scraping source and combines standard n8n nodes for polling, deduplication, AI enrichment, routing, reporting, and destination payload preparation.\n\n用途: 以CoreClaw官方节点为数据来源，并结合n8n标准节点完成轮询、去重、AI增强、分流、报告和载荷准备。",
-        "width": 760,
-        "height": 380
-      }
-    },
-    {
-      "id": "note-parameters",
-      "name": "Parameters / 参数",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -900,
-        -520
-      ],
-      "parameters": {
-        "content": "## Parameters / 参数\n\nEdit **Input Config / 输入配置** before running.\n\n**Example / 示例:**\n`keyword=dentist, base_location=Austin, Texas, USA, max_results=3`\n\n**Tips / 提示:**\n- Start with low limits for testing.\n- Increase wait_seconds for larger jobs.\n- Select your CoreClaw credential on each CoreClaw node after import.\n- 测试阶段建议使用较小数量.\n- 大批量任务请提高wait_seconds.\n- 导入后请在CoreClaw节点选择你的凭证.",
-        "width": 700,
-        "height": 380
-      }
-    },
-    {
-      "id": "note-flow",
-      "name": "Flow / 流程",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -1700,
-        -120
-      ],
-      "parameters": {
-        "content": "## Flow / 流程\n\n1. Trigger / 触发\n2. Input Config / 输入配置\n3. Start CoreClaw Run / 启动CoreClaw\n4. Wait + Poll / 等待并轮询\n5. Get Results / 获取结果\n6. Normalize + Deduplicate / 规范化并去重\n7. AI or Enrichment / AI或增强处理\n8. Prepare Payloads + Report / 准备载荷并生成报告\n\nUse **Success Summary / 成功摘要** to inspect final output.\n使用 **Success Summary / 成功摘要** 查看最终输出。",
-        "width": 760,
-        "height": 360
-      }
-    },
-    {
-      "id": "note-output",
-      "name": "Outputs / 输出",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -900,
-        -120
-      ],
-      "parameters": {
-        "content": "## Outputs & Integrations / 输出集成\n\n**Output (EN):** Deduped lead records routed by hot/warm/nurture priority.\n\n**输出:** 生成可用于业务系统的数据载荷、摘要和执行证据.\n\nRecommended next integrations:\n- Google Sheets / Google 表格\n- Airtable or CRM / Airtable 或 CRM\n- Slack alerts / Slack 提醒\n- Notion database / Notion 数据库\n- Gmail or email outreach / Gmail 或邮件外联",
-        "width": 700,
-        "height": 360
-      }
-    },
-    {
       "id": "manual-trigger",
-      "name": "Manual Trigger / 手动启动",
+      "name": "Manual Trigger",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
@@ -74,7 +14,7 @@
     },
     {
       "id": "input-config",
-      "name": "Input Config / 输入配置",
+      "name": "Input Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
@@ -121,6 +61,54 @@
               "type": "boolean"
             },
             {
+              "id": "max_reviews_per_place",
+              "name": "max_reviews_per_place",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "review_sort_by",
+              "name": "review_sort_by",
+              "value": "newest",
+              "type": "string"
+            },
+            {
+              "id": "campaign_name",
+              "name": "campaign_name",
+              "value": "Spreadsheet ready lead list",
+              "type": "string"
+            },
+            {
+              "id": "owner",
+              "name": "owner",
+              "value": "Marketing Ops",
+              "type": "string"
+            },
+            {
+              "id": "target_icp",
+              "name": "target_icp",
+              "value": "Teams that need clean tabular lead data without manual copy paste",
+              "type": "string"
+            },
+            {
+              "id": "offer",
+              "name": "offer",
+              "value": "Produce spreadsheet rows with score, action, and CRM-ready fields",
+              "type": "string"
+            },
+            {
+              "id": "proxy_region",
+              "name": "proxy_region",
+              "value": "US",
+              "type": "string"
+            },
+            {
+              "id": "min_score_for_alert",
+              "name": "min_score_for_alert",
+              "value": 75,
+              "type": "number"
+            },
+            {
               "id": "wait_seconds",
               "name": "wait_seconds",
               "value": 15,
@@ -133,7 +121,7 @@
     },
     {
       "id": "start-coreclaw-run",
-      "name": "Start CoreClaw Run / 启动CoreClaw",
+      "name": "Start CoreClaw Run",
       "type": "n8n-nodes-coreclaw.coreClaw",
       "typeVersion": 1,
       "position": [
@@ -149,17 +137,21 @@
           "value": "01KPD6M5YQADCQKGVKPDZVYC63"
         },
         "version": "v1.2.1",
-        "customParams": "={\n  \"keyword\": [{\"string\": \"{{ $json.keyword }}\"}],\n  \"base_location\": \"{{ $json.base_location }}\",\n  \"max_results\": {{ $json.max_results }},\n  \"lang\": \"{{ $json.lang }}\",\n  \"fetch_reviews\": {{ $json.fetch_reviews }},\n  \"fetch_social_info\": {{ $json.fetch_social_info }}\n}"
+        "customParams": "={\n  \"keyword\": [{\"string\": \"{{ $json.keyword }}\"}],\n  \"base_location\": \"{{ $json.base_location }}\",\n  \"max_results\": {{ $json.max_results }},\n  \"lang\": \"{{ $json.lang }}\",\n  \"fetch_reviews\": {{ $json.fetch_reviews }},\n  \"fetch_social_info\": {{ $json.fetch_social_info }},\n  \"max_reviews_per_place\": {{ $json.max_reviews_per_place }},\n  \"review_sort_by\": \"{{ $json.review_sort_by }}\",\n  \"include_reviewer_info\": {{ $json.fetch_reviews }}\n}",
+        "additionalFields": {
+          "systemParams": "={\n  \"cpus\": 2,\n  \"memory\": 8192,\n  \"max_total_charge\": 0,\n  \"max_total_traffic\": 0,\n  \"execute_limit_time_seconds\": 0,\n  \"proxy_region\": \"{{ $json.proxy_region || 'US' }}\"\n}"
+        }
       },
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 5000,
+      "continueOnFail": false,
       "notesInFlow": true,
-      "notes": "Select your CoreClaw API credential after import."
+      "notes": "Bind a CoreClaw API credential after import. This node uses the official CoreClaw community package."
     },
     {
-      "id": "wait-before-next-poll",
-      "name": "Wait Before Poll / 等待轮询",
+      "id": "wait-before-poll",
+      "name": "Wait Before Poll",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
@@ -168,13 +160,13 @@
       ],
       "parameters": {
         "resume": "timeInterval",
-        "amount": "={{ Number($json.wait_seconds || 15) }}",
+        "amount": "={{ Number($items(\"Input Config\")?.[0]?.json?.wait_seconds || 15) }}",
         "unit": "seconds"
       }
     },
     {
       "id": "get-run-status",
-      "name": "Get Run Status / 获取状态",
+      "name": "Get Run Status",
       "type": "n8n-nodes-coreclaw.coreClaw",
       "typeVersion": 1,
       "position": [
@@ -184,18 +176,18 @@
       "parameters": {
         "resource": "run",
         "operation": "get",
-        "runSlug": "={{ $('Start CoreClaw Run / 启动CoreClaw').item.json.run_slug }}"
+        "runSlug": "={{ $('Start CoreClaw Run').item.json.run_slug }}"
       },
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 5000,
+      "continueOnFail": true,
       "notesInFlow": true,
-      "notes": "Select your CoreClaw API credential after import.",
-      "continueOnFail": true
+      "notes": "Bind a CoreClaw API credential after import. This node uses the official CoreClaw community package."
     },
     {
-      "id": "if-run-terminal",
-      "name": "If Terminal / 是否结束",
+      "id": "if-terminal",
+      "name": "If Terminal",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -212,8 +204,8 @@
           },
           "conditions": [
             {
-              "id": "if-run-terminal",
-              "leftValue": "={{ Number($json.status) }}",
+              "id": "if-terminal",
+              "leftValue": "={{ $json.error ? 4 : Number($json.status) }}",
               "rightValue": 3,
               "operator": {
                 "type": "number",
@@ -227,8 +219,8 @@
       }
     },
     {
-      "id": "if-run-succeeded",
-      "name": "If Success / 是否成功",
+      "id": "if-success",
+      "name": "If Success",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
@@ -245,8 +237,8 @@
           },
           "conditions": [
             {
-              "id": "if-run-succeeded",
-              "leftValue": "={{ Number($json.status) }}",
+              "id": "if-success",
+              "leftValue": "={{ $json.error ? 4 : Number($json.status) }}",
               "rightValue": 3,
               "operator": {
                 "type": "number",
@@ -261,7 +253,7 @@
     },
     {
       "id": "get-run-results",
-      "name": "Get Run Results / 获取结果",
+      "name": "Get Run Results",
       "type": "n8n-nodes-coreclaw.coreClaw",
       "typeVersion": 1,
       "position": [
@@ -271,19 +263,20 @@
       "parameters": {
         "resource": "run",
         "operation": "getResults",
-        "runSlug": "={{ $('Start CoreClaw Run / 启动CoreClaw').item.json.run_slug }}",
+        "runSlug": "={{ $('Start CoreClaw Run').item.json.run_slug }}",
         "returnAll": false,
-        "limit": "={{ Number($items(\"Input Config / 输入配置\")?.[0]?.json?.max_results || 10) }}"
+        "limit": "={{ Number($items(\"Input Config\")?.[0]?.json?.max_results || 10) }}"
       },
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 5000,
+      "continueOnFail": false,
       "notesInFlow": true,
-      "notes": "Select your CoreClaw API credential after import."
+      "notes": "Bind a CoreClaw API credential after import. This node uses the official CoreClaw community package."
     },
     {
-      "id": "normalize-business-leads",
-      "name": "Normalize Leads / 规范化线索",
+      "id": "normalize-records",
+      "name": "Normalize Records",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -292,12 +285,12 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const input = $items('Input Config / 输入配置')?.[0]?.json ?? {};\nconst rows = $input.all().map(item => item.json);\nfunction cleanUrl(value) { return String(value || '').split('?')[0].replace(/\\/$/, ''); }\nfunction key(row) { return String(row.cid || row.data_id || row.website || row.title || '').toLowerCase().trim(); }\nreturn rows.map((row, index) => {\n  const website = cleanUrl(row.website);\n  const emails = [row.email_1, row.email_2, row.email_3, row.email_4, row.all_emails].filter(Boolean).join(', ');\n  const rating = Number(row.total_score || row.rating || 0);\n  const reviewCount = Number(row.reviews_count || row.review_count || 0);\n  let leadScore = 35;\n  if (website) leadScore += 15;\n  if (emails) leadScore += 25;\n  if (row.phone) leadScore += 10;\n  if (rating >= 4.5) leadScore += 10;\n  if (reviewCount >= 100) leadScore += 10;\n  if (rating > 0 && rating < 4) leadScore -= 15;\n  leadScore = Math.max(0, Math.min(100, leadScore));\n  const leadPriority = leadScore >= 80 ? 'hot' : leadScore >= 60 ? 'warm' : 'nurture';\n  return { json: {\n    workflow_kind: 'to_sheets_advanced', lead_key: key(row), index: index + 1,\n    source_keyword: row.source_keyword || input.keyword || '', source_location: row.source_location || input.base_location || '',\n    title: row.title || '', category: row.primary_category || row.all_categories || '', all_categories: row.all_categories || '',\n    address: row.address || '', city: row.city || '', state: row.state || '', country: row.country || '', postal_code: row.postal_code || '',\n    phone: row.phone || '', website, email: emails, rating, review_count: reviewCount, google_maps_url: row.url || '',\n    lead_score: leadScore, lead_priority: leadPriority, crm_stage: leadPriority === 'hot' ? 'Qualified' : 'New',\n    recommended_action: leadPriority === 'hot' ? 'Call today and send personalized email.' : leadPriority === 'warm' ? 'Send email and call within 48 hours.' : 'Add to nurture and enrich later.',\n    company_summary: [row.title, row.primary_category, row.address, row.phone ? 'Phone: ' + row.phone : '', website ? 'Website: ' + website : ''].filter(Boolean).join(' | '),\n    scraped_at: row.scraped_at || new Date().toISOString(), raw: row\n  }};\n});"
+        "jsCode": "const input = $items('Input Config')?.[0]?.json || {};\nconst rows = $input.all().map(item => item.json || {});\nconst workflowKind = \"sheets_leads\";\n\nfunction first(row, names) {\n  for (const name of names) {\n    const value = row[name];\n    if (value !== undefined && value !== null && String(value).trim() !== '') return value;\n  }\n  return '';\n}\n\nfunction cleanUrl(value) {\n  const raw = String(value || '').trim();\n  if (!raw) return '';\n  const withProtocol = /^https?:\\/\\//i.test(raw) ? raw : 'https://' + raw;\n  return withProtocol.split('#')[0].replace(/\\/$/, '');\n}\n\nfunction num(value) {\n  const parsed = Number(String(value ?? '').replace(/[^0-9.-]/g, ''));\n  return Number.isFinite(parsed) ? parsed : 0;\n}\n\nfunction emailsFrom(row) {\n  const values = [\n    row.email, row.email_1, row.email_2, row.email_3, row.email_4,\n    row.all_emails, row.emails, row.discovered_emails,\n  ].filter(Boolean).join(', ');\n  return [...new Set(String(values).match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/gi) || [])].map(v => v.toLowerCase());\n}\n\nfunction scoreLead(row, website, emails, phone, rating, reviewCount) {\n  let contactability = 15;\n  if (website) contactability += 25;\n  if (emails.length) contactability += 25;\n  if (phone) contactability += 25;\n  if (first(row, ['linkedin', 'facebook', 'instagram', 'social_links'])) contactability += 10;\n\n  let demand = 25;\n  if (reviewCount >= 250) demand += 25;\n  else if (reviewCount >= 100) demand += 20;\n  else if (reviewCount >= 25) demand += 12;\n  if (rating >= 4.6) demand += 20;\n  else if (rating >= 4.2) demand += 14;\n  else if (rating > 0 && rating < 3.8) demand += 8;\n\n  let fit = 25;\n  const category = String(first(row, ['primary_category', 'category', 'all_categories'])).toLowerCase();\n  const keyword = String(input.keyword || '').toLowerCase();\n  if (category && keyword && category.includes(keyword.split(' ')[0])) fit += 20;\n  if (first(row, ['address', 'city', 'state', 'country'])) fit += 15;\n\n  const reputationRisk = rating > 0 && rating < 4 ? Math.min(30, Math.round((4 - rating) * 18 + Math.min(reviewCount, 100) / 10)) : 0;\n  const commercialScore = Math.max(0, Math.min(100, Math.round(contactability * 0.4 + demand * 0.35 + fit * 0.25 + reputationRisk * 0.15)));\n  return { contactability, demand, fit, reputationRisk, commercialScore };\n}\n\nreturn rows.map((row, index) => {\n  const website = cleanUrl(first(row, ['website', 'site', 'domain', 'url']));\n  const emailList = emailsFrom(row);\n  const phone = String(first(row, ['phone', 'phone_number', 'telephone'])).trim();\n  const rating = num(first(row, ['rating', 'review_rating', 'total_score', 'stars']));\n  const reviewCount = num(first(row, ['reviews_count', 'review_count', 'reviews']));\n  const title = String(first(row, ['title', 'name', 'business_name', 'place_name'])).trim();\n  const category = String(first(row, ['primary_category', 'category', 'all_categories'])).trim();\n  const score = scoreLead(row, website, emailList, phone, rating, reviewCount);\n  const priority = score.commercialScore >= 75 ? 'hot' : score.commercialScore >= 55 ? 'warm' : 'nurture';\n  const recommendedAction = priority === 'hot'\n    ? 'Call today, add to CRM as SQL, and send a personalized first email.'\n    : priority === 'warm'\n      ? 'Send a tailored email sequence and schedule a follow-up call within 48 hours.'\n      : 'Keep in nurture, enrich contacts, and re-score after more signals are available.';\n  const key = String(first(row, ['cid', 'data_id', 'place_id', 'google_id', 'website', 'url']) || title || index).toLowerCase().trim();\n  return {\n    json: {\n      workflow_kind: workflowKind,\n      record_key: key,\n      campaign_name: input.campaign_name || '',\n      owner: input.owner || '',\n      target_icp: input.target_icp || '',\n      offer: input.offer || '',\n      source_keyword: first(row, ['source_keyword']) || input.keyword || '',\n      source_location: first(row, ['source_location']) || input.base_location || '',\n      title,\n      category,\n      address: first(row, ['address', 'full_address']),\n      city: first(row, ['city']),\n      state: first(row, ['state', 'province']),\n      country: first(row, ['country']),\n      postal_code: first(row, ['postal_code', 'zip']),\n      phone,\n      website,\n      email: emailList.join(', '),\n      email_count: emailList.length,\n      rating,\n      review_count: reviewCount,\n      google_maps_url: first(row, ['url', 'google_maps_url', 'place_url']),\n      social_profiles: {\n        linkedin: first(row, ['linkedin']),\n        facebook: first(row, ['facebook']),\n        instagram: first(row, ['instagram']),\n      },\n      contactability_score: Math.min(100, score.contactability),\n      demand_score: Math.min(100, score.demand),\n      icp_fit_score: Math.min(100, score.fit),\n      reputation_risk_score: score.reputationRisk,\n      commercial_score: score.commercialScore,\n      lead_priority: priority,\n      crm_stage: priority === 'hot' ? 'Sales Qualified' : priority === 'warm' ? 'Marketing Qualified' : 'Nurture',\n      recommended_action: recommendedAction,\n      outreach_angle: score.reputationRisk >= 15\n        ? 'Lead with review response, reputation recovery, and conversion lift.'\n        : 'Lead with automation ROI, missed opportunity capture, and faster follow-up.',\n      evidence: [\n        website ? 'website available' : 'missing website',\n        emailList.length ? 'email found' : 'email not found',\n        phone ? 'phone available' : 'missing phone',\n        rating ? 'rating ' + rating : 'no rating',\n        reviewCount ? reviewCount + ' reviews' : 'no review count',\n      ],\n      raw: row,\n      processed_at: new Date().toISOString(),\n    },\n  };\n});"
       }
     },
     {
       "id": "remove-duplicates",
-      "name": "Remove Duplicates / 去重",
+      "name": "Remove Duplicates",
       "type": "n8n-nodes-base.removeDuplicates",
       "typeVersion": 2,
       "position": [
@@ -306,61 +299,42 @@
       ],
       "parameters": {
         "compare": "selectedFields",
-        "fieldsToCompare": "lead_key",
+        "fieldsToCompare": "record_key",
         "options": {}
       }
     },
     {
-      "id": "loop-over-leads",
-      "name": "Loop Leads / 逐条线索",
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
+      "id": "prepare-payloads",
+      "name": "Prepare Destination Payloads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         1160,
         -100
       ],
       "parameters": {
-        "batchSize": 1,
-        "options": {}
+        "mode": "runOnceForAllItems",
+        "jsCode": "const workflowName = \"CoreClaw Sheets Leads\";\n\nfunction compact(value) {\n  if (Array.isArray(value)) return value.filter(Boolean);\n  if (!value || typeof value !== 'object') return value;\n  return Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined && item !== null && item !== ''));\n}\n\nreturn $input.all().map(item => {\n  const r = item.json || {};\n  const score = Number(r.commercial_score ?? r.opportunity_score ?? 0);\n  const priority = r.lead_priority || r.priority || (score >= 80 ? 'high' : score >= 60 ? 'medium' : 'normal');\n  const title = r.title || r.full_name || r.username || r.brand || r.record_key || 'CoreClaw record';\n  const externalId = r.record_key || r.asin || r.username || title;\n  const email = r.email || r.discovered_emails || '';\n  const action = r.ai_action || r.recommended_action || 'Review and assign an owner.';\n  const sheetRow = compact({\n    workflow_name: workflowName,\n    campaign_name: r.campaign_name,\n    owner: r.owner,\n    external_id: externalId,\n    title,\n    category: r.category,\n    location: [r.city, r.state, r.country].filter(Boolean).join(', '),\n    phone: r.phone,\n    email,\n    website: r.website,\n    rating: r.rating,\n    review_count: r.review_count,\n    score,\n    priority,\n    recommended_action: action,\n    ai_pitch: r.ai_pitch,\n    source_keyword: r.source_keyword || r.keyword,\n    processed_at: r.processed_at,\n  });\n  const crmPayload = compact({\n    external_id: externalId,\n    company_name: title,\n    stage: r.crm_stage || (priority === 'hot' || priority === 'high' ? 'Qualified' : 'New'),\n    owner: r.owner,\n    score,\n    priority,\n    phone: r.phone,\n    email,\n    website: r.website,\n    next_step: r.ai_next_step || action,\n    source: 'CoreClaw n8n workflow',\n  });\n  const slackText = '[' + String(priority).toUpperCase() + '] ' + title + ' | score ' + score + ' | ' + action;\n  const emailDraft = compact({\n    to: email,\n    subject: title ? 'Quick idea for ' + title : 'Quick automation idea',\n    body: [\n      'Hi,',\n      '',\n      r.ai_pitch || r.outreach_angle || 'I noticed a few operational signals that may be worth acting on.',\n      '',\n      'Relevant signal: ' + (r.evidence || []).join('; '),\n      'Suggested next step: ' + action,\n      '',\n      'Best,',\n      r.owner || 'CoreClaw Ops',\n    ].join('\\n'),\n  });\n\n  return {\n    json: {\n      ...r,\n      destination_payloads: {\n        google_sheets: sheetRow,\n        airtable: { fields: sheetRow },\n        crm: crmPayload,\n        slack: { text: slackText },\n        notion: { title, properties: sheetRow },\n        email_draft: emailDraft,\n        webhook: { event: 'coreclaw.workflow.record_ready', workflow_name: workflowName, payload: sheetRow },\n      },\n      integration_contract_version: '2026-06-12.commercial-v1',\n    },\n  };\n});"
       }
     },
     {
-      "id": "ai-business-analysis",
-      "name": "AI Business Analysis / AI商业分析",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "id": "aggregate-results",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
       "position": [
         1420,
         -100
       ],
       "parameters": {
-        "method": "POST",
-        "url": "https://maas-coding-api.cn-huabei-1.xf-yun.com/v2/chat/completions",
-        "authentication": "none",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer YOUR_LLM_API_KEY"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "jsonBody": "={{ ({ model: 'astron-code-latest', temperature: 0.2, messages: [{ role: 'system', content: 'You are a B2B revenue operations analyst. Return compact JSON only.' }, { role: 'user', content: 'Analyze this local business lead and return JSON with fields: persona, pain_point, pitch, next_step, risk. Lead: ' + JSON.stringify($json) }] }) }}",
-        "options": {
-          "timeout": 60000
-        },
-        "specifyBody": "json"
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "records",
+        "options": {}
       }
     },
     {
-      "id": "parse-ai-output",
-      "name": "Parse AI Output / 解析AI输出",
+      "id": "success-summary",
+      "name": "Success Summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -369,166 +343,12 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const sourceItems = $items('Remove Duplicates / 去重').map(item => item.json);\nreturn $input.all().map((item, index) => {\n  const source = sourceItems[index] || sourceItems[0] || {};\n  const body = item.json;\n  const content = body?.choices?.[0]?.message?.content || '{}';\n  const cleaned = String(content).replace(/^```json\\s*/i, '').replace(/^```\\s*/i, '').replace(/```$/i, '').trim();\n  let parsed = {};\n  try { parsed = JSON.parse(cleaned); } catch (error) { parsed = { raw: content }; }\n  return { json: { ...source, ai_persona: parsed.persona || '', ai_pain_point: parsed.pain_point || '', ai_pitch: parsed.pitch || '', ai_next_step: parsed.next_step || '', ai_risk: parsed.risk || '', ai_raw: parsed } };\n});"
+        "jsCode": "const aggregate = $input.first()?.json || {};\nconst records = Array.isArray(aggregate.records) ? aggregate.records : $input.all().map(item => item.json || {});\nlet status = {};\nlet input = {};\ntry { status = $items('Get Run Status')?.[0]?.json || {}; } catch (error) {}\ntry { input = $items('Input Config')?.[0]?.json || {}; } catch (error) {}\n\nfunction scoreOf(record) {\n  return Number(record.commercial_score ?? record.opportunity_score ?? 0);\n}\n\nconst sorted = [...records].sort((a, b) => scoreOf(b) - scoreOf(a));\nconst alertThreshold = Number(input.min_score_for_alert || 75);\nconst highValue = sorted.filter(record => scoreOf(record) >= alertThreshold);\nconst payloadCoverage = records.filter(record => record.destination_payloads).length;\nconst avgScore = records.length ? Math.round(records.reduce((sum, record) => sum + scoreOf(record), 0) / records.length) : 0;\nconst reportLines = [\n  '# ' + \"CoreClaw Sheets Leads\",\n  '',\n  '- Outcome: success',\n  '- CoreClaw run: ' + ($items('Start CoreClaw Run')?.[0]?.json?.run_slug || ''),\n  '- Returned records: ' + records.length,\n  '- Average commercial score: ' + avgScore,\n  '- Alert threshold records: ' + highValue.length,\n  '- Payload-ready records: ' + payloadCoverage,\n  '',\n  '## Top actions',\n  ...sorted.slice(0, 5).map((record, index) => (index + 1) + '. ' + (record.title || record.full_name || record.username || record.record_key || 'Record') + ' - score ' + scoreOf(record) + ' - ' + (record.ai_action || record.recommended_action || 'Review')),\n];\n\nreturn [{\n  json: {\n    outcome: 'success',\n    workflow_name: \"CoreClaw Sheets Leads\",\n    campaign_name: input.campaign_name || '',\n    owner: input.owner || '',\n    run_slug: $items('Start CoreClaw Run')?.[0]?.json?.run_slug || '',\n    run_status: status.status,\n    coreclaw_result_count: status.results ?? status.result_count ?? records.length,\n    returned_items: records.length,\n    average_commercial_score: avgScore,\n    high_value_records: highValue.length,\n    payload_ready_records: payloadCoverage,\n    business_value: 'Commercially usable output: scored records, prioritized actions, CRM/table/Airtable/Slack/Notion/email payloads, and an executive summary.',\n    top_records: sorted.slice(0, 5),\n    report_markdown: reportLines.join('\\n'),\n    verified_at: new Date().toISOString(),\n  },\n}];"
       }
     },
     {
-      "id": "route-by-priority",
-      "name": "Route by Priority / 按优先级分流",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.2,
-      "position": [
-        1940,
-        -100
-      ],
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.lead_priority }}",
-                    "rightValue": "hot",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Hot"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.lead_priority }}",
-                    "rightValue": "warm",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Warm"
-            }
-          ]
-        },
-        "options": {
-          "fallbackOutput": "extra",
-          "renameFallbackOutput": "Nurture"
-        }
-      }
-    },
-    {
-      "id": "noop-hot leads queue",
-      "name": "Hot Leads Queue / 热线索队列",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        2200,
-        -220
-      ],
-      "parameters": {}
-    },
-    {
-      "id": "noop-warm leads queue",
-      "name": "Warm Leads Queue / 温线索队列",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        2200,
-        -80
-      ],
-      "parameters": {}
-    },
-    {
-      "id": "noop-nurture queue",
-      "name": "Nurture Queue / 培育队列",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        2200,
-        80
-      ],
-      "parameters": {}
-    },
-    {
-      "id": "prepare-google-sheets-rows",
-      "name": "Prepare Sheets Rows / 准备表格行",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2460,
-        -100
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "return $input.all().map(item => ({ json: { ...item.json, destination: 'google_sheets', row: { lead_key: item.json.lead_key, title: item.json.title, category: item.json.category, address: item.json.address, phone: item.json.phone, website: item.json.website, email: item.json.email || item.json.discovered_emails, rating: item.json.rating, review_count: item.json.review_count, lead_score: item.json.lead_score, lead_priority: item.json.lead_priority, recommended_action: item.json.recommended_action, ai_pitch: item.json.ai_pitch, company_summary: item.json.company_summary } } }));"
-      }
-    },
-    {
-      "id": "aggregate-campaign",
-      "name": "Aggregate Campaign / 聚合活动",
-      "type": "n8n-nodes-base.aggregate",
-      "typeVersion": 1,
-      "position": [
-        2720,
-        -100
-      ],
-      "parameters": {
-        "aggregate": "aggregateAllItemData",
-        "destinationFieldName": "leads",
-        "options": {}
-      }
-    },
-    {
-      "id": "markdown-report",
-      "name": "Markdown Report / Markdown报告",
-      "type": "n8n-nodes-base.markdown",
-      "typeVersion": 1,
-      "position": [
-        2980,
-        -100
-      ],
-      "parameters": {
-        "mode": "markdownToHtml",
-        "markdown": "=## CoreClaw Lead Report\n\nWorkflow: {{$json.workflow_kind || \"coreclaw\"}}\n\nTotal leads payload generated. Open execution data for structured rows."
-      }
-    },
-    {
-      "id": "build-success-summary",
-      "name": "Success Summary / 成功摘要",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        3240,
-        -100
-      ],
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const status = $items('Get Run Status / 获取状态')?.[0]?.json ?? {};\nconst input = $items('Input Config / 输入配置')?.[0]?.json ?? {};\nconst rows = $input.all().map(i => i.json);\nreturn [{ json: { outcome: 'success', workflow_kind: 'to_sheets_advanced', run_slug: $items('Start CoreClaw Run / 启动CoreClaw')?.[0]?.json?.run_slug || '', run_status: status.status, coreclaw_result_count: status.results, returned_items: rows.length, hot_leads: rows.filter(r => r.lead_priority === 'hot').length, warm_leads: rows.filter(r => r.lead_priority === 'warm').length, keyword: input.keyword, base_location: input.base_location, business_value: 'CoreClaw plus n8n enrichment pipeline with AI, routing, destination payloads, and verification summary.', sample_results: rows.slice(0, 3), verified_at: new Date().toISOString() }}];"
-      }
-    },
-    {
-      "id": "build-failure-summary",
-      "name": "Failure Summary / 失败摘要",
+      "id": "failure-summary",
+      "name": "Failure Summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -537,227 +357,168 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const status = $items('Get Run Status / 获取状态')?.[0]?.json ?? {};\nreturn [{ json: { outcome: 'failure', workflow_kind: 'to_sheets_advanced', run_slug: $items('Start CoreClaw Run / 启动CoreClaw')?.[0]?.json?.run_slug || '', run_status: status.status, run_error_message: status.err_msg || '', verified_at: new Date().toISOString() }}];"
+        "jsCode": "let status = {};\nlet input = {};\ntry { status = $items('Get Run Status')?.[0]?.json || {}; } catch (error) {}\ntry { input = $items('Input Config')?.[0]?.json || {}; } catch (error) {}\n\nconst statusCode = Number(status.status || 0);\nconst diagnosis = status.error || status.err_msg || status.message || (statusCode === 4 ? 'CoreClaw run failed.' : statusCode === 5 ? 'CoreClaw run was aborted.' : 'CoreClaw run did not complete successfully.');\n\nreturn [{\n  json: {\n    outcome: 'failure',\n    workflow_name: \"CoreClaw Sheets Leads\",\n    campaign_name: input.campaign_name || '',\n    run_slug: $items('Start CoreClaw Run')?.[0]?.json?.run_slug || '',\n    run_status: status.status,\n    diagnosis,\n    recommended_fix: 'Check CoreClaw run logs, verify scraper parameters and quota, then re-run with a small limit before scaling.',\n    input_snapshot: input,\n    verified_at: new Date().toISOString(),\n  },\n}];"
       }
     }
   ],
   "connections": {
-    "Manual Trigger / 手动启动": {
+    "Manual Trigger": {
       "main": [
         [
           {
-            "node": "Input Config / 输入配置",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
-    "Input Config / 输入配置": {
-      "main": [
-        [
-          {
-            "node": "Start CoreClaw Run / 启动CoreClaw",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
-    "Start CoreClaw Run / 启动CoreClaw": {
-      "main": [
-        [
-          {
-            "node": "Wait Before Poll / 等待轮询",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
-    "Wait Before Poll / 等待轮询": {
-      "main": [
-        [
-          {
-            "node": "Get Run Status / 获取状态",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
-    "Get Run Status / 获取状态": {
-      "main": [
-        [
-          {
-            "node": "If Terminal / 是否结束",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
-    "If Terminal / 是否结束": {
-      "main": [
-        [
-          {
-            "node": "If Success / 是否成功",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Wait Before Poll / 等待轮询",
+            "node": "Input Config",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "If Success / 是否成功": {
+    "Input Config": {
       "main": [
         [
           {
-            "node": "Get Run Results / 获取结果",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Failure Summary / 失败摘要",
+            "node": "Start CoreClaw Run",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get Run Results / 获取结果": {
+    "Start CoreClaw Run": {
       "main": [
         [
           {
-            "node": "Normalize Leads / 规范化线索",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
-    "Normalize Leads / 规范化线索": {
-      "main": [
-        [
-          {
-            "node": "Remove Duplicates / 去重",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
-    "Remove Duplicates / 去重": {
-      "main": [
-        [
-          {
-            "node": "AI Business Analysis / AI商业分析",
+            "node": "Wait Before Poll",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Loop Leads / 逐条线索": {
-      "main": [
-        []
-      ]
-    },
-    "AI Business Analysis / AI商业分析": {
+    "Wait Before Poll": {
       "main": [
         [
           {
-            "node": "Parse AI Output / 解析AI输出",
+            "node": "Get Run Status",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Parse AI Output / 解析AI输出": {
+    "Get Run Status": {
       "main": [
         [
           {
-            "node": "Prepare Sheets Rows / 准备表格行",
+            "node": "If Terminal",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Route by Priority / 按优先级分流": {
-      "main": [
-        [],
-        [],
-        []
-      ]
-    },
-    "Hot Leads Queue / 热线索队列": {
-      "main": [
-        [],
-        []
-      ]
-    },
-    "Prepare Sheets Rows / 准备表格行": {
+    "If Terminal": {
       "main": [
         [
           {
-            "node": "Aggregate Campaign / 聚合活动",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Aggregate Campaign / 聚合活动": {
-      "main": [
-        [
-          {
-            "node": "Markdown Report / Markdown报告",
+            "node": "If Success",
             "type": "main",
             "index": 0
           }
         ],
-        []
+        [
+          {
+            "node": "Wait Before Poll",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Markdown Report / Markdown报告": {
+    "If Success": {
       "main": [
         [
           {
-            "node": "Success Summary / 成功摘要",
+            "node": "Get Run Results",
             "type": "main",
             "index": 0
           }
         ],
-        []
+        [
+          {
+            "node": "Failure Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Run Results": {
+      "main": [
+        [
+          {
+            "node": "Normalize Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Records": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Prepare Destination Payloads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Destination Payloads": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Success Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1",
-    "saveManualExecutions": true
+    "saveManualExecutions": true,
+    "timezone": "Asia/Shanghai"
   },
-  "versionId": "coreclaw-gmaps-to-sheets-upgraded-v4",
+  "versionId": "sheets_leads-commercial-v1",
   "meta": {
-    "templateId": "coreclaw-gmaps-to-sheets",
-    "instanceId": "coreclaw-local-upgraded"
+    "templateId": "coreclaw-gmaps-to-sheets.json",
+    "instanceId": "coreclaw-commercial-2026-06-12"
   },
   "tags": []
 }
