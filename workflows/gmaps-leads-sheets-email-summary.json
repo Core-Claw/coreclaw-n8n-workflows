@@ -1,0 +1,402 @@
+{
+  "name": "CoreClaw Maps Leads → Sheets + Email Summary / 地图线索→表格+邮件摘要",
+  "nodes": [
+    {
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b-webhook",
+      "name": "Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gmaps-leads-summary",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "gmaps-leads-summary"
+    },
+    {
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "id": "b-input-config",
+      "name": "Input Config / 输入配置",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "keywords",
+              "value": "HVAC Contractors",
+              "type": "string"
+            },
+            {
+              "name": "base_location",
+              "value": "New York, USA",
+              "type": "string"
+            },
+            {
+              "name": "max_results",
+              "value": 5,
+              "type": "number"
+            },
+            {
+              "name": "fetch_social_info",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "name": "email_verification",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "name": "recipient_email",
+              "value": "445481611@qq.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "notes": "Edit search params and the email recipient here. / 在此修改搜索参数和邮件收件人。"
+    },
+    {
+      "type": "n8n-nodes-coreclaw.coreClaw",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "b-run-and-get-results",
+      "name": "Run and Get Results / 运行并取结果",
+      "parameters": {
+        "resource": "worker",
+        "operation": "runAndGetResults",
+        "workerId": {
+          "mode": "id",
+          "value": "coreclaw~google-maps-scraper",
+          "__rl": true
+        },
+        "input_json": "={\n  \"keywords\": [{\"keyword\": \"{{ $json.keywords }}\"}],\n  \"base_location\": \"{{ $json.base_location }}\",\n  \"max_results\": {{ $json.max_results }},\n  \"fetch_social_info\": {{ $json.fetch_social_info }},\n  \"email_verification\": {{ $json.email_verification }}\n}",
+        "returnAll": true,
+        "limit": 50
+      },
+      "credentials": {
+        "coreClawApi": {
+          "id": "1Q3qGQ2v7GmH03DQ",
+          "name": "CoreClaw API"
+        }
+      }
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "b-flatten-and-score",
+      "name": "Normalize & Score / 标准化与评分",
+      "parameters": {
+        "jsCode": "const rows = $input.all().map((item) => {\n  const r = item.json || {};\n  const emails = (r.all_emails || '').toString().trim();\n  const cats = (r.all_categories || '').toString().trim();\n  const rating = Number(r.review_rating) || 0;\n  const reviews = Number(r.review_count) || 0;\n  const hasEmail = emails ? 1 : 0;\n  const hasWebsite = r.website ? 1 : 0;\n  const score = Math.round(Math.min(100, rating * Math.log10(reviews + 1) * 12 + hasEmail * 15 + hasWebsite * 5));\n  return {\n    json: {\n      search_rank: r.search_rank ?? '',\n      title: r.title || '',\n      phone: r.phone || '',\n      website: r.website || '',\n      emails: emails,\n      primary_category: r.primary_category || '',\n      categories: cats,\n      review_rating: r.review_rating ?? '',\n      review_count: r.review_count ?? '',\n      status: r.status || '',\n      city: r.city || '',\n      state: r.state || '',\n      address: r.address || '',\n      latitude: r.latitude ?? '',\n      longitude: r.longitude ?? '',\n      place_url: r.url || '',\n      lead_score: score,\n      source_keyword: r.source_keyword || '',\n      source_location: r.source_location || '',\n      scraped_at: r.scraped_at || ''\n    }\n  };\n});\nreturn rows.sort((a, b) => b.json.lead_score - a.json.lead_score);"
+      }
+    },
+    {
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -160
+      ],
+      "id": "b-append-to-sheet",
+      "name": "Append Rows to Sheet / 追加到表格",
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1Y3xnBlrGc-oI14BQ7Jhy-j1zI5oqwF09OIyVWV8U6tM",
+          "cachedResultName": "CoreClaw Maps Leads"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads",
+          "cachedResultName": "Leads"
+        },
+        "options": {},
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "schema": []
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "auigvMexy6zFEBF4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "type": "n8n-nodes-coreclaw.coreClaw",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "b-export-xlsx",
+      "name": "Export Last Run Results (xlsx) / 导出Excel",
+      "parameters": {
+        "resource": "worker",
+        "operation": "exportLastRunResults",
+        "workerId": {
+          "mode": "id",
+          "value": "coreclaw~google-maps-scraper",
+          "__rl": true
+        },
+        "format": "xlsx"
+      },
+      "credentials": {
+        "coreClawApi": {
+          "id": "1Q3qGQ2v7GmH03DQ",
+          "name": "CoreClaw API"
+        }
+      },
+      "notes": "Must run right after 'Run and Get Results' — exports the worker's last run. / 必须紧跟在「运行并取结果」之后,导出该 worker 上一轮结果。"
+    },
+    {
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "b-download-xlsx",
+      "name": "Download xlsx / 下载Excel",
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.download_url || $json.data.download_url }}",
+        "responseFormat": "file",
+        "options": {}
+      },
+      "notes": "Fetches the signed download_url as binary. / 拉取签名直链为二进制附件。"
+    },
+    {
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        880,
+        160
+      ],
+      "id": "b-aggregate-rows",
+      "name": "Aggregate rows / 汇总行",
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "rows",
+        "options": {}
+      },
+      "notes": "Collects all flattened rows into one item.rows array for the email body. / 把所有扁平化行汇成一个 item.rows,供邮件正文用。"
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        160
+      ],
+      "id": "b-build-email-html",
+      "name": "Build Email HTML / 生成邮件正文",
+      "parameters": {
+        "jsCode": "const rows = ($input.first().json.rows || []).slice();\nconst total = rows.length;\nconst withEmail = rows.filter(r => r.emails).length;\nconst emailRate = total ? Math.round(withEmail * 100 / total) : 0;\nconst top = rows.slice(0, 10);\nconst esc = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');\nconst tr = (r) => `<tr><td>${esc(r.lead_score)}</td><td>${esc(r.title)}</td><td>${esc(r.review_rating)}★ (${esc(r.review_count)})</td><td>${esc(r.emails)||'—'}</td><td>${esc(r.phone)||'—'}</td><td>${esc(r.primary_category)}</td></tr>`;\nconst table = top.length ? `<table border=\"1\" cellpadding=\"6\" cellspacing=\"0\" style=\"border-collapse:collapse;font-size:13px;\"><thead><tr><th>Score</th><th>Title</th><th>Rating</th><th>Email</th><th>Phone</th><th>Category</th></tr></thead><tbody>${top.map(tr).join('')}</tbody></table>` : '<p>No records.</p>';\nconst html = `<h2>CoreClaw Maps Leads — Summary</h2>\n<p>Total leads: <b>${total}</b> · With email: <b>${withEmail}</b> (${emailRate}%) · Top shown: ${top.length}</p>\n${table}\n<p style=\"color:#888;font-size:12px;\">Full data attached as gmaps-leads.xlsx.</p>`;\nreturn [{ json: { html, total, withEmail, emailRate } }];"
+      }
+    },
+    {
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1760,
+        80
+      ],
+      "id": "b-send-email",
+      "name": "Send Summary Email / 发摘要邮件",
+      "parameters": {
+        "sendTo": "={{ $('Input Config / 输入配置').item.json.recipient_email }}",
+        "subject": "=CoreClaw Maps Leads — {{ $('Build Email HTML / 生成邮件正文').item.json.total }} leads ({{ $('Build Email HTML / 生成邮件正文').item.json.withEmail }} with email)",
+        "message": "={{ $('Build Email HTML / 生成邮件正文').item.json.html }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsValues": [
+              {
+                "attachmentId": "={{ $(\"Download xlsx / 下载Excel\").item.binary.data }}",
+                "attachmentName": "gmaps-leads.xlsx"
+              }
+            ]
+          }
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "FzED6PyCF14CVkwQ",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -220
+      ],
+      "id": "b-note-overview",
+      "name": "Overview / 总览",
+      "parameters": {
+        "content": "## CoreClaw Maps Leads → Sheets + Email Summary\n\nRuns `google-maps-scraper` (v2 Run and Get Results), flattens + scores rows, then in parallel: writes every row to Google Sheets, exports the run as xlsx, downloads it, and emails an HTML summary (Top 10 table + stats) with the xlsx attached.\n\n## 地图线索→表格+邮件摘要\n\n跑 gmaps worker,扁平化+评分,并行三路:每行写 Google Sheets、导出 xlsx、发带附件的 HTML 摘要邮件(Top10 表+统计)。"
+      },
+      "width": 560,
+      "height": 240
+    },
+    {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        860,
+        -300
+      ],
+      "id": "b-note-branch",
+      "name": "Branches / 分支说明",
+      "parameters": {
+        "content": "After **Normalize & Score** the rows fan out:\n\n1. ↓ Append to Google Sheets (every row)\n2. → Export Last Run Results (xlsx) → Download → Merge\n3. ↓ Aggregate → Build Email HTML → Merge → Gmail\n\n**Export Last Run Results** must be the very next worker run after **Run and Get Results**, or the export may point to a different run.\n\n## 分支\n扁平化后分三路:写表 / 导出下载 / 汇总发邮件。导出节点必须紧贴运行节点。"
+      },
+      "width": 560,
+      "height": 200
+    },
+    {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1500,
+        -220
+      ],
+      "id": "b-note-creds",
+      "name": "Credentials / 凭证",
+      "parameters": {
+        "content": "Bind three credentials (see docs/google-oauth-setup.md):\n- CoreClaw API → Run + Export nodes\n- Google Sheets OAuth2 → Append node\n- Gmail OAuth2 → Send Email node\n\n## 三套凭证\nCoreClaw API、Google Sheets OAuth2、Gmail OAuth2。"
+      },
+      "width": 400,
+      "height": 160
+    }
+  ],
+  "connections": {
+    "Input Config / 输入配置": {
+      "main": [
+        [
+          {
+            "node": "Run and Get Results / 运行并取结果",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run and Get Results / 运行并取结果": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Score / 标准化与评分",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Score / 标准化与评分": {
+      "main": [
+        [
+          {
+            "node": "Append Rows to Sheet / 追加到表格",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Export Last Run Results (xlsx) / 导出Excel",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate rows / 汇总行",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export Last Run Results (xlsx) / 导出Excel": {
+      "main": [
+        [
+          {
+            "node": "Download xlsx / 下载Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download xlsx / 下载Excel": {
+      "main": [
+        []
+      ]
+    },
+    "Aggregate rows / 汇总行": {
+      "main": [
+        [
+          {
+            "node": "Build Email HTML / 生成邮件正文",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email HTML / 生成邮件正文": {
+      "main": [
+        [
+          {
+            "node": "Send Summary Email / 发摘要邮件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Input Config / 输入配置",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    "CoreClaw",
+    "Google Maps",
+    "Lead Generation",
+    "Email",
+    "Google Sheets"
+  ]
+}

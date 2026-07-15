@@ -1,141 +1,105 @@
-# CoreClaw n8n Commercial Workflow Pack
+# CoreClaw n8n Workflows (v2)
 
-This repository contains 12 production-oriented n8n workflow templates for the official CoreClaw community node.
+Production-ready n8n workflow templates that turn [CoreClaw](https://coreclaw.com)'s Google Maps scraper into closed business loops: scrape → score → **write to Google Sheets** → **email a summary with an Excel attachment**.
 
-The templates are designed for daily sales, revenue operations, ecommerce intelligence, reputation operations, and partnership workflows. Each workflow produces scored records, recommended actions, and ready-to-send payloads for Google Sheets, Airtable, CRM, Slack, Notion, email drafts, and webhooks.
+Built for the current `n8n-nodes-coreclaw` **0.4.0** (node `description.version: 2`, 34 operations on `/api/v2/`). Verified importable on n8n **2.30.4**.
 
-## What Changed
+## What's here
 
-- Rebuilt all 12 workflows with bilingual English / Chinese workflow names and node names.
-- Added bilingual English / Chinese sticky notes to every workflow so operators can understand purpose, inputs, flow, and outputs directly inside n8n.
-- Removed orphan business nodes, disconnected NoOp queues, and stale branches while retaining intentional documentation sticky notes.
-- Added commercial scoring, priority routing, CRM stages, evidence fields, and executive summaries.
-- Added retry settings to CoreClaw, website fetch, and optional AI enrichment nodes.
-- Added CoreClaw `systemParams` for consistent worker runtime configuration.
-- Added stronger website email extraction with domain matching and placeholder/image-file filtering.
-- Kept secrets out of workflow JSON. CoreClaw credentials are bound inside the local n8n instance only.
+| Workflow | What it does | Run mode | Downstream |
+| --- | --- | --- | --- |
+| [`workflows/gmaps-leads-to-sheets.json`](workflows/gmaps-leads-to-sheets.json) | Run the Google Maps scraper, flatten + score rows, append to a Google Sheet. | `Run and Get Results` (poll) | Google Sheets |
+| [`workflows/gmaps-leads-sheets-email-summary.json`](workflows/gmaps-leads-sheets-email-summary.json) | Same, plus export the run as `.xlsx`, download it, and email an HTML summary (Top-10 table + email-coverage stats) with the xlsx attached. | `Run and Get Results` (poll) | Google Sheets + Gmail |
+| [`workflows/gmaps-leads-callback-export.json`](workflows/gmaps-leads-callback-export.json) | Event-driven: run async with `callback_url`, and on CoreClaw's callback fetch results, export xlsx, email it. No polling — needs n8n reachable from the internet. | callback webhook | Gmail |
 
-## Workflow Mind Map
+A → B → C is a deliberate complexity ramp: pick the smallest one that does the job.
 
-```mermaid
-mindmap
-  root((CoreClaw n8n Workflows))
-    "Lead generation / 线索生成"
-      "Maps Leads / 地图线索"
-      "Maps Email Finder / 地图邮箱发现"
-      "Email Outreach Leads / 邮件外联线索"
-      "Global Prospecting / 全球拓客"
-    "Revenue operations / 收入运营"
-      "B2B Enrichment / B2B线索增强"
-      "Lead Operations / 完整线索运营"
-      "Sheets Leads / 表格线索"
-      "Airtable Pipeline / Airtable管道"
-    "Reputation / 口碑运营"
-      "Reviews Monitor / 评论监控"
-      "Reputation Operations / 口碑运营"
-    "Market intelligence / 市场情报"
-      "Amazon Product Intelligence / 亚马逊商品情报"
-      "Instagram Profile Intelligence / Instagram账号情报"
+## Why this replaced the old pack
+
+The previous 12 workflows in [`legacy-v1/`](legacy-v1/ARCHIVED.md) are archived because:
+
+1. They targeted the **v1 node contract** (`scraperSlug` + `scraper.run`/`run.get`/`run.getResults` + explicit `version: v1.x.x`). The v2 node uses `worker_id` + `Run and Get Results`; the parameters no longer match.
+2. They **claimed** Google Sheets / Gmail / Airtable integration but contained zero such nodes — only Code nodes that assembled payload field names. These workflows actually wire the downstream nodes.
+3. 9 of 12 were the same Google Maps scraper with different post-processing, generated from a single source script. These three are hand-written against the real worker schema.
+
+## Prerequisites
+
+- n8n **2.22.5+** (built and import-tested on 2.30.4).
+- The `n8n-nodes-coreclaw` community package installed (**Settings → Community nodes → install `n8n-nodes-coreclaw`**). On self-hosted Docker you can also `npm install n8n-nodes-coreclaw` inside the n8n user folder and restart.
+- Three credentials — see [`docs/credentials-binding.md`](docs/credentials-binding.md) and [`docs/google-oauth-setup.md`](docs/google-oauth-setup.md):
+  - **CoreClaw API** (key + base URL `https://openapi.coreclaw.com`)
+  - **Google Sheets OAuth2**
+  - **Gmail OAuth2** (workflows B and C only)
+
+## Quick start
+
+1. **Install the node package** and **create the credentials** above.
+2. **Create a Google Spreadsheet** with a sheet named `Leads` (workflows A and B write there).
+3. **Import** a workflow JSON: n8n → Workflows → ⋮ → **Import from File**.
+4. **Bind credentials** on every node flagged `REPLACE_WITH_*` (see [`docs/credentials-binding.md`](docs/credentials-binding.md)).
+5. For workflow C, set `callback_url` on the `Start Run` node to your CoreClaw Trigger webhook URL — and make sure n8n is reachable from the public internet (or via a tunnel like cpolar/frp).
+6. Open the `Input Config` node, set your `keywords` / `base_location` / `max_results`, click **Execute workflow**.
+
+The default search (`HVAC Contractors` / `New York, USA` / `max_results=5`) costs roughly `$0.008` per run at the worker's published rate and finishes in ~30–40s.
+
+## How the scoring works
+
+The `Normalize & Score` Code node computes `lead_score` (0–100):
+
+```
+score = round(min(100, review_rating · log10(review_count + 1) · 12  +  hasEmail·15  +  hasWebsite·5))
 ```
 
-## Standard Flow
+Tune the weights in the Code node. Rows are sorted by `lead_score` descending before they hit the sheet and the email table.
 
-```mermaid
-flowchart LR
-  A["Manual or schedule trigger / 手动或定时触发"] --> B["Input Config / 输入配置"]
-  B --> C["Start CoreClaw Run / 启动CoreClaw任务"]
-  C --> D["Wait Before Poll / 等待轮询"]
-  D --> E["Get Run Status / 获取任务状态"]
-  E --> F{"If Terminal / 是否结束"}
-  F -- "No / 否" --> D
-  F -- "Yes / 是" --> G{"If Success / 是否成功"}
-  G -- "No / 否" --> H["Failure Summary / 失败摘要"]
-  G -- "Yes / 是" --> I["Get Run Results / 获取任务结果"]
-  I --> J["Normalize Records / 标准化记录"]
-  J --> K["Remove Duplicates / 去重"]
-  K --> L["Optional AI and website enrichment / 可选AI与网站增强"]
-  L --> M["Prepare Destination Payloads / 准备目标系统载荷"]
-  M --> N["Aggregate Results / 汇总结果"]
-  N --> O["Success Summary / 成功摘要"]
-```
+## Field mapping
 
-## Workflows
-
-| File | Workflow | Main use |
-| --- | --- | --- |
-| `coreclaw-gmaps-leads-simple.json` | CoreClaw Maps Leads / CoreClaw 地图线索 | Local lead scoring and CRM-ready payloads |
-| `coreclaw-gmaps-leads-email-extraction-simple.json` | CoreClaw Maps Email Finder / CoreClaw 地图邮箱发现 | Lead enrichment with website email discovery |
-| `coreclaw-gmaps-leads-email-extraction.json` | CoreClaw Email Outreach Leads / CoreClaw 邮件外联线索 | AI-assisted outbound pitch and next-step generation |
-| `coreclaw-gmaps-b2b-enrichment-simple.json` | CoreClaw B2B Enrichment / CoreClaw B2B线索增强 | B2B account qualification and disqualification guardrails |
-| `coreclaw-gmaps-leads-complete-enhanced.json` | CoreClaw Lead Operations / CoreClaw 完整线索运营 | Full lead ops pipeline with AI and website signals |
-| `coreclaw-google-maps-leads-complete-global.json` | CoreClaw Global Prospecting / CoreClaw 全球拓客 | International clinic/aesthetic prospecting |
-| `coreclaw-gmaps-to-sheets.json` | CoreClaw Sheets Leads / CoreClaw 表格线索 | Spreadsheet-ready lead rows |
-| `coreclaw-gmaps-airtable-email.json` | CoreClaw Airtable Pipeline / CoreClaw Airtable管道 | Airtable CRM field payloads |
-| `coreclaw-gmaps-reviews-monitor-simple.json` | CoreClaw Reviews Monitor / CoreClaw 评论监控 | Daily reputation monitoring |
-| `coreclaw-gmaps-reviews-monitor.json` | CoreClaw Reputation Operations / CoreClaw 口碑运营 | AI-assisted reputation actions |
-| `coreclaw-amazon-product-intelligence.json` | CoreClaw Amazon Product Intelligence / CoreClaw 亚马逊商品情报 | Ecommerce competitor and product opportunity intelligence |
-| `coreclaw-instagram-profile-intelligence.json` | CoreClaw Instagram Profile Intelligence / CoreClaw Instagram账号情报 | Brand, creator, and partner account intelligence |
-
-## Requirements
-
-- n8n 2.22.5 or newer.
-- `n8n-nodes-coreclaw` installed in n8n community nodes.
-- A CoreClaw API credential configured in n8n.
-- Optional AI enrichment: set `ASTRON_API_KEY` in the n8n runtime environment, or replace the placeholder privately inside your n8n instance.
-
-Do not commit real API keys into these JSON files.
-
-## Import Notes
-
-After importing the JSON files, bind the CoreClaw credential on every `Start CoreClaw Run`, `Get Run Status`, and `Get Run Results` node.
-
-In the bilingual templates these nodes are named `Start CoreClaw Run / 启动CoreClaw任务`, `Get Run Status / 获取任务状态`, and `Get Run Results / 获取任务结果`.
-
-The workflow JSON intentionally contains no credential IDs. The local sync helper can bind credentials to a local n8n instance without modifying repository templates:
-
-```powershell
-$env:N8N_EMAIL="you@example.com"
-$env:N8N_PASSWORD="..."
-$env:ASTRON_API_KEY="..."
-node tools\sync-local-n8n.js
-```
+Worker result fields → sheet columns are documented in [`docs/field-map.md`](docs/field-map.md). That file also lists the four places the worker's README sample disagrees with real output (e.g. `review_rating`/`review_count`, not `rating`/`reviews_total`; `all_emails` is a string, not an array) — these workflows use the real fields.
 
 ## Validation
 
-The local n8n instance was backed up before cleanup. The latest bilingual sync deleted the previous 12 English-only CoreClaw workflows and left exactly 12 current bilingual CoreClaw workflows.
+Both polling workflows were executed end-to-end against a live CoreClaw account and a real Google account on n8n 2.30.4 (worker `coreclaw/google-maps-scraper`, search `HVAC Contractors` / `New York, USA` / `max_results=5`):
 
-Representative real executions in local n8n:
+| Workflow | Result |
+| --- | --- |
+| A — gmaps-leads-to-sheets | ✅ `success` — 5 records scraped, scored, appended to a Google Sheet (`Leads` tab, 20 columns). |
+| B — gmaps-leads-sheets-email-summary | ✅ `success` — same scrape + Sheet append, plus `.xlsx` exported (64 KB) and emailed to the configured recipient with an HTML Top-10 summary. |
+| C — gmaps-leads-callback-export | Imported and activated; runtime requires a public/tunnel webhook URL (not exercised locally). See the workflow's sticky notes. |
 
-| Workflow | Execution ID | Result |
-| --- | ---: | --- |
-| CoreClaw Maps Leads / CoreClaw 地图线索 | 182 | Success, 3 records, avg score 59, payloads ready |
-| CoreClaw Email Outreach Leads / CoreClaw 邮件外联线索 | 183 | Success, AI and website enrichment, 3 payload-ready records |
-| CoreClaw Sheets Leads / CoreClaw 表格线索 | 184 | Success, spreadsheet-ready payloads, avg score 64 |
-| CoreClaw Maps Email Finder / CoreClaw 地图邮箱发现 | 185 | Success, website email enrichment, 3 payload-ready records |
-| CoreClaw Reviews Monitor / CoreClaw 评论监控 | 186 | Success, 2 reputation records, daily review summary |
-| CoreClaw B2B Enrichment / CoreClaw B2B线索增强 | 187 | Success, B2B qualification and disqualification guidance |
-| CoreClaw Lead Operations / CoreClaw 完整线索运营 | 188 | Success, full-funnel lead ops output with AI guidance |
-| CoreClaw Airtable Pipeline / CoreClaw Airtable管道 | 189 | Success, Airtable/CRM payloads, 3 payload-ready records |
-| CoreClaw Global Prospecting / CoreClaw 全球拓客 | 190 | Success, Singapore clinic prospecting with verified emails |
-| CoreClaw Reputation Operations / CoreClaw 口碑运营 | 191 | Success, AI-assisted reputation actions |
-| CoreClaw Amazon Product Intelligence / CoreClaw 亚马逊商品情报 | 192 | Success, 3 product intelligence records, avg score 63 |
-| CoreClaw Instagram Profile Intelligence / CoreClaw Instagram账号情报 | 193 | Success, Tier-1 brand account intelligence, high-value record |
+Google Sheet created by the run: a spreadsheet titled **CoreClaw Maps Leads** with a **Leads** sheet and a 20-column header row (`lead_score, search_rank, title, phone, website, emails, primary_category, categories, review_rating, review_count, status, city, state, address, latitude, longitude, place_url, source_keyword, source_location, scraped_at`).
 
-Repository validation checks:
+## Known node-package issue (runAndGetResults params)
 
-- All 12 JSON files parse successfully.
-- Every node name is bilingual English / Chinese.
-- Every workflow contains bilingual English / Chinese sticky notes.
-- No orphan business nodes or NoOp queues remain; sticky notes are intentional documentation nodes.
-- No missing connection sources or targets.
-- No code-node syntax errors.
-- No Chinese mojibake or replacement characters are present.
-- No real CoreClaw or AI API keys are present in repository files.
+While validating, execution of the **Run and Get Results** node failed with `NodeOperationError: Could not find property` from `collectParams`. Root cause: in `n8n-nodes-coreclaw` 0.4.0, the `runAndGetResults`/`rerunAndGetResults` specs spread `runBodyParams` (callback_url / is_async / body offset+limit) and `resultPaginationParams` into `spec.params`, but the node description only displays those fields for `run`/`rerunLastRun`/`abortLastRun` — not for `runAndGetResults`. `findDisplayedProperty` therefore throws.
 
-## Local Tools
+The local n8n container was patched: `dist/nodes/CoreClaw/resources/endpointSpecs.js` was edited so `runAndGetResults`/`rerunAndGetResults` `params` keep only `workerId`/`version`/`input_json`/`raw_input_json` (returnAll is fetched separately in `router.js`; offset/limit fall back to 0/50). A backup sits at `endpointSpecs.js.bak` in the container.
 
-- `tools/generate-commercial-workflows.js`: regenerates all 12 workflow JSON files from a single source of truth.
-- `tools/sync-local-n8n.js`: syncs the repository workflows into a local n8n instance, binds local credentials, and removes duplicate CoreClaw workflows.
-- `tools/run-local-workflow.js`: triggers a workflow through n8n REST and reads the final execution output.
+> If you reinstall the package or recreate the container, re-apply this patch or the workflows' `Run and Get Results` nodes will fail. Upstream fix tracked separately.
 
-These tools are operational helpers, not required for normal n8n import.
+## Troubleshooting
+
+| Symptom | Cause / fix |
+| --- | --- |
+| Node shows `REPLACE_WITH_*` / red flag | Bind the credential (see credentials-binding.md). |
+| CoreClaw `12001` / `12002` | Invalid or unauthorized API key — recreate the CoreClaw API credential. |
+| CoreClaw `11004` | Worker not found — the `workerId` mode `id` value must be `coreclaw~google-maps-scraper` (owner path) or the store slug. |
+| CoreClaw `30001` | Insufficient balance on your CoreClaw account. |
+| `Run did not finish before polling timed out` | The `Run and Get Results` node polls ~4 min max. For long jobs, use workflow C (callback) instead of polling. |
+| Google `redirect_uri_mismatch` | OAuth redirect URI must be exactly `http://localhost:5678/rest/oauth2-credential/callback` (see google-oauth-setup.md). |
+| Gmail `invalid_scope` | Use `gmail.send` only. |
+| Workflow C never fires | n8n isn't reachable from the internet; CoreClaw can't POST to your webhook. Use a tunnel or deploy n8n publicly. |
+| Empty `emails` / `categories` columns | You're on a worker version whose output still uses arrays — check [`docs/field-map.md`](docs/field-map.md) "Gotchas". |
+
+## Repository layout
+
+```
+.
+├── workflows/          # the three v2 workflow JSON files (import these)
+├── docs/               # credential setup, binding guide, field map
+├── legacy-v1/          # archived v1 workflows (do not use with the v2 node)
+└── README.md
+```
+
+## License
+
+MIT — same as the upstream node package.

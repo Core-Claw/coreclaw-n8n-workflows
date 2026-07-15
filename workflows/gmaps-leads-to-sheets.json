@@ -1,0 +1,228 @@
+{
+  "name": "CoreClaw Maps Leads → Google Sheets / 地图线索→谷歌表格",
+  "nodes": [
+    {
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gmaps-leads",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "gmaps-leads-run"
+    },
+    {
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "id": "input-config",
+      "name": "Input Config / 输入配置",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "keywords",
+              "value": "HVAC Contractors",
+              "type": "string"
+            },
+            {
+              "name": "base_location",
+              "value": "New York, USA",
+              "type": "string"
+            },
+            {
+              "name": "max_results",
+              "value": 5,
+              "type": "number"
+            },
+            {
+              "name": "fetch_social_info",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "name": "email_verification",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "notes": "Edit keywords / base_location / max_results here. / 在此修改搜索关键词、地点、数量。"
+    },
+    {
+      "type": "n8n-nodes-coreclaw.coreClaw",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "run-and-get-results",
+      "name": "Run and Get Results / 运行并取结果",
+      "parameters": {
+        "resource": "worker",
+        "operation": "runAndGetResults",
+        "workerId": {
+          "mode": "id",
+          "value": "coreclaw~google-maps-scraper",
+          "__rl": true
+        },
+        "input_json": "={\n  \"keywords\": [{\"keyword\": \"{{ $json.keywords }}\"}],\n  \"base_location\": \"{{ $json.base_location }}\",\n  \"max_results\": {{ $json.max_results }},\n  \"fetch_social_info\": {{ $json.fetch_social_info }},\n  \"email_verification\": {{ $json.email_verification }}\n}",
+        "returnAll": true,
+        "limit": 50
+      },
+      "credentials": {
+        "coreClawApi": {
+          "id": "1Q3qGQ2v7GmH03DQ",
+          "name": "CoreClaw API"
+        }
+      }
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "flatten-and-score",
+      "name": "Normalize & Score / 标准化与评分",
+      "parameters": {
+        "jsCode": "const rows = $input.all().map((item) => {\n  const r = item.json || {};\n  const emails = (r.all_emails || '').toString().trim();\n  const cats = (r.all_categories || '').toString().trim();\n  const rating = Number(r.review_rating) || 0;\n  const reviews = Number(r.review_count) || 0;\n  const hasEmail = emails ? 1 : 0;\n  const hasWebsite = r.website ? 1 : 0;\n  // simple lead score: rating * log(reviews+1) + email/website boosts, scaled to ~0-100\n  const score = Math.round(Math.min(100, rating * Math.log10(reviews + 1) * 12 + hasEmail * 15 + hasWebsite * 5));\n  return {\n    json: {\n      search_rank: r.search_rank ?? '',\n      title: r.title || '',\n      phone: r.phone || '',\n      website: r.website || '',\n      emails: emails,\n      primary_category: r.primary_category || '',\n      categories: cats,\n      review_rating: r.review_rating ?? '',\n      review_count: r.review_count ?? '',\n      status: r.status || '',\n      city: r.city || '',\n      state: r.state || '',\n      address: r.address || '',\n      latitude: r.latitude ?? '',\n      longitude: r.longitude ?? '',\n      place_url: r.url || '',\n      lead_score: score,\n      source_keyword: r.source_keyword || '',\n      source_location: r.source_location || '',\n      scraped_at: r.scraped_at || ''\n    }\n  };\n});\nreturn rows.sort((a, b) => b.json.lead_score - a.json.lead_score);"
+      }
+    },
+    {
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "append-to-sheet",
+      "name": "Append Rows to Sheet / 追加到表格",
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1Y3xnBlrGc-oI14BQ7Jhy-j1zI5oqwF09OIyVWV8U6tM",
+          "cachedResultName": "CoreClaw Maps Leads"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads",
+          "cachedResultName": "Leads"
+        },
+        "options": {},
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "schema": []
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "auigvMexy6zFEBF4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -200
+      ],
+      "id": "note-overview",
+      "name": "Overview / 总览",
+      "parameters": {
+        "content": "## CoreClaw Maps Leads → Google Sheets\n\nRuns the `google-maps-scraper` worker via the v2 **Run and Get Results** node (run → poll → fetch rows in one step), flattens arrays, adds a `lead_score`, and appends rows to a Google Sheet.\n\n## 地图线索→谷歌表格\n\n用 v2 的 **运行并取结果** 节点跑 `google-maps-scraper`(运行→轮询→取结果一步到位),扁平化数组、加 `lead_score` 评分,追加到 Google 表格。"
+      },
+      "width": 520,
+      "height": 240
+    },
+    {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        430,
+        -200
+      ],
+      "id": "note-bind-creds",
+      "name": "Bind credentials / 绑定凭证",
+      "parameters": {
+        "content": "## Before running / 运行前\n\n1. Install `n8n-nodes-coreclaw` in **Settings → Community nodes**.\n2. Create a **CoreClaw API** credential (API key + base URL).\n3. Create a **Google Sheets OAuth2** credential (see docs/google-oauth-setup.md).\n4. Bind both credentials on the nodes flagged with `REPLACE_WITH_*`.\n5. Create a Google Spreadsheet with a sheet named `Leads`; the first run can auto-create headers.\n\n## 凭证\n- CoreClaw API 凭证\n- Google Sheets OAuth2 凭证\n- 建 Google 表格,工作表名 `Leads`,首行会自动建表头。"
+      },
+      "width": 520,
+      "height": 240
+    }
+  ],
+  "connections": {
+    "Input Config / 输入配置": {
+      "main": [
+        [
+          {
+            "node": "Run and Get Results / 运行并取结果",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run and Get Results / 运行并取结果": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Score / 标准化与评分",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Score / 标准化与评分": {
+      "main": [
+        [
+          {
+            "node": "Append Rows to Sheet / 追加到表格",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Input Config / 输入配置",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    "CoreClaw",
+    "Google Maps",
+    "Lead Generation"
+  ]
+}
