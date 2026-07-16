@@ -2,7 +2,7 @@
 
 把 [CoreClaw](https://coreclaw.com) 的 Google Maps 采集器变成完整业务闭环的生产级 n8n 模板:采集 → 评分 → **写入 Google 表格** → **发送带 Excel 附件的摘要邮件**。
 
-基于当前 `n8n-nodes-coreclaw` **0.4.0**(节点 `description.version: 2`,34 个 operation,全 `/api/v2/`)。已在 n8n **2.30.4** 验证可导入。
+基于 `n8n-nodes-coreclaw` **0.4.1**(节点 `description.version: 2`,34 个 operation,全 `/api/v2/`)。已在 n8n **2.30.4** 端到端验证。
 
 ## 工作流清单
 
@@ -68,13 +68,11 @@ worker 结果字段 → 表格列见 [`docs/field-map.md`](docs/field-map.md)。
 
 运行创建的 Google 表格:名为 **CoreClaw Maps Leads**,含 **Leads** 工作表,20 列表头(`lead_score, search_rank, title, phone, website, emails, primary_category, categories, review_rating, review_count, status, city, state, address, latitude, longitude, place_url, source_keyword, source_location, scraped_at`)。
 
-## 已知节点包问题(runAndGetResults 参数)
+## 节点包 bug(已在 0.4.1 修复)
 
-验证时 **Run and Get Results** 节点报 `NodeOperationError: Could not find property`(来自 `collectParams`)。根因:`n8n-nodes-coreclaw` 0.4.0 里 `runAndGetResults`/`rerunAndGetResults` 的 spec 把 `runBodyParams`(callback_url/is_async/body offset+limit)和分页参数展开进 `spec.params`,但节点描述只对 `run`/`rerunLastRun`/`abortLastRun` 显示这些字段,不含 `runAndGetResults`,导致 `findDisplayedProperty` 抛错。
+验证时 **Run and Get Results** 节点报 `NodeOperationError: Could not find property`(来自 `collectParams`)。根因:`n8n-nodes-coreclaw` ≤ 0.4.0 里 `runAndGetResults`/`rerunAndGetResults` 的 spec 把 `runBodyParams`(callback_url/is_async/body offset+limit)和分页参数展开进 `spec.params`,但节点描述只对 `run`/`rerunLastRun`/`abortLastRun` 显示这些字段,不含 `runAndGetResults`,导致 `findDisplayedProperty` 抛错。
 
-本地 n8n 容器已打补丁:`dist/nodes/CoreClaw/resources/endpointSpecs.js` 中 `runAndGetResults`/`rerunAndGetResults` 的 `params` 只保留 `workerId`/`version`/`input_json`/`raw_input_json`(returnAll 在 `router.js` 单独取,offset/limit 回退 0/50)。容器内有 `endpointSpecs.js.bak` 备份。
-
-> 重装节点包或重建容器后需重新打此补丁,否则工作流的 `Run and Get Results` 节点会失败。上游修复另行跟踪。
+**已在 0.4.1 上游修复**([commit](https://github.com/Core-Claw/n8n-nodes-coreclaw/commit/1710c22)):复合 spec 的 `params` 现在只保留 `workerId`/`version`/`input_json`/`raw_input_json`(returnAll 在 `router.js` 单独取,offset/limit 回退 0/50)。修复已发到 npm,任何人装 `n8n-nodes-coreclaw@latest`(≥ 0.4.1)拿到的就是修好的版本,无需手动打补丁。
 
 ## 故障排查
 

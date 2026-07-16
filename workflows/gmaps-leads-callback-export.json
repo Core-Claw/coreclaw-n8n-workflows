@@ -311,6 +311,19 @@
         "combineBy": "combineByPosition",
         "options": {}
       }
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        60
+      ],
+      "id": "16-rename",
+      "name": "Rename attachment / 重命名附件",
+      "parameters": {
+        "jsCode": "// Rename the downloaded xlsx binary to a stable filename for the email attachment\nfor (const item of $input.all()) {\n  if (item.binary?.data) {\n    item.binary.data.fileName = \"gmaps-leads.xlsx\";\n  }\n}\nreturn $input.all();"
+      }
     }
   ],
   "connections": {
@@ -400,9 +413,9 @@
       "main": [
         [
           {
-            "node": "Merge (html + attachment) / 合并正文与附件",
+            "node": "Rename attachment / 重命名附件",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -436,6 +449,17 @@
             "node": "Send Email / 发邮件",
             "type": "main",
             "index": 0
+          }
+        ]
+      ]
+    },
+    "Rename attachment / 重命名附件": {
+      "main": [
+        [
+          {
+            "node": "Merge (html + attachment) / 合并正文与附件",
+            "type": "main",
+            "index": 1
           }
         ]
       ]

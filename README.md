@@ -2,7 +2,7 @@
 
 Production-ready n8n workflow templates that turn [CoreClaw](https://coreclaw.com)'s Google Maps scraper into closed business loops: scrape → score → **write to Google Sheets** → **email a summary with an Excel attachment**.
 
-Built for the current `n8n-nodes-coreclaw` **0.4.0** (node `description.version: 2`, 34 operations on `/api/v2/`). Verified importable on n8n **2.30.4**.
+Built for `n8n-nodes-coreclaw` **0.4.1** (node `description.version: 2`, 34 operations on `/api/v2/`). Verified end-to-end on n8n **2.30.4**.
 
 ## What's here
 
@@ -68,13 +68,11 @@ Both polling workflows were executed end-to-end against a live CoreClaw account 
 
 Google Sheet created by the run: a spreadsheet titled **CoreClaw Maps Leads** with a **Leads** sheet and a 20-column header row (`lead_score, search_rank, title, phone, website, emails, primary_category, categories, review_rating, review_count, status, city, state, address, latitude, longitude, place_url, source_keyword, source_location, scraped_at`).
 
-## Known node-package issue (runAndGetResults params)
+## Node-package bug (fixed in 0.4.1)
 
-While validating, execution of the **Run and Get Results** node failed with `NodeOperationError: Could not find property` from `collectParams`. Root cause: in `n8n-nodes-coreclaw` 0.4.0, the `runAndGetResults`/`rerunAndGetResults` specs spread `runBodyParams` (callback_url / is_async / body offset+limit) and `resultPaginationParams` into `spec.params`, but the node description only displays those fields for `run`/`rerunLastRun`/`abortLastRun` — not for `runAndGetResults`. `findDisplayedProperty` therefore throws.
+During validation, the **Run and Get Results** node failed with `NodeOperationError: Could not find property` from `collectParams`. Root cause: in `n8n-nodes-coreclaw` ≤ 0.4.0, the `runAndGetResults`/`rerunAndGetResults` specs spread `runBodyParams` (callback_url / is_async / body offset+limit) and `resultPaginationParams` into `spec.params`, but the node description only displays those fields for `run`/`rerunLastRun`/`abortLastRun` — not for `runAndGetResults`. `findDisplayedProperty` therefore threw.
 
-The local n8n container was patched: `dist/nodes/CoreClaw/resources/endpointSpecs.js` was edited so `runAndGetResults`/`rerunAndGetResults` `params` keep only `workerId`/`version`/`input_json`/`raw_input_json` (returnAll is fetched separately in `router.js`; offset/limit fall back to 0/50). A backup sits at `endpointSpecs.js.bak` in the container.
-
-> If you reinstall the package or recreate the container, re-apply this patch or the workflows' `Run and Get Results` nodes will fail. Upstream fix tracked separately.
+**Fixed upstream in 0.4.1** ([commit](https://github.com/Core-Claw/n8n-nodes-coreclaw/commit/1710c22)): the composite specs now keep only `workerId`/`version`/`input_json`/`raw_input_json` in `spec.params` (returnAll is fetched separately in `router.js`; offset/limit fall back to 0/50). The fix is published to npm, so anyone installing `n8n-nodes-coreclaw@latest` (≥ 0.4.1) gets the working version — no patching needed.
 
 ## Troubleshooting
 
