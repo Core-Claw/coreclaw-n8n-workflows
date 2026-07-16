@@ -1,0 +1,7 @@
+name = "coreclaw-n8n-templates"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Public URL after deploy: https://coreclaw-n8n-templates.<your-subdomain>.workers.dev
+# Point a self-hosted n8n at it via:
+#   N8N_TEMPLATES_HOST=https://coreclaw-n8n-templates.<subdomain>.workers.dev

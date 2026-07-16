@@ -1,0 +1,459 @@
+{
+  "name": "Google Maps Leads via Callback (No Polling) → Email with Excel",
+  "nodes": [
+    {
+      "type": "n8n-nodes-coreclaw.coreClawTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c-trigger",
+      "name": "CoreClaw Trigger (callback) / 回调触发器",
+      "parameters": {
+        "eventFilter": "succeeded",
+        "validatePayload": true,
+        "includeHeaders": false
+      },
+      "webhookId": "coreclaw-callback",
+      "notes": "Webhook URL = http://<your-n8n-host>:5678/webhook/callback (production) or /webhook-test/callback (test). Paste this into the Worker > Run callback_url. / 回调地址需公网可达,粘到 Worker>Run 的 callback_url。"
+    },
+    {
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "id": "c-capture-callback",
+      "name": "Capture callback / 提取回调",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "run_id",
+              "value": "={{ $json.run_id }}",
+              "type": "string"
+            },
+            {
+              "name": "run_status",
+              "value": "={{ $json.run_status }}",
+              "type": "string"
+            },
+            {
+              "name": "result_count",
+              "value": "={{ $json.result_count || 0 }}",
+              "type": "number"
+            },
+            {
+              "name": "recipient_email",
+              "value": "t445481611@gmail.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-coreclaw.coreClaw",
+      "typeVersion": 2,
+      "position": [
+        440,
+        -120
+      ],
+      "id": "c-list-results",
+      "name": "List Results / 取结果",
+      "parameters": {
+        "resource": "workerRun",
+        "operation": "listResults",
+        "runId": {
+          "mode": "id",
+          "value": "={{ $json.run_id }}",
+          "__rl": true
+        },
+        "returnAll": true,
+        "limit": 50
+      }
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -120
+      ],
+      "id": "c-flatten-and-score",
+      "name": "Normalize & Score / 标准化与评分",
+      "parameters": {
+        "jsCode": "const rows = $input.all().map((item) => {\n  const r = item.json || {};\n  const emails = (r.all_emails || '').toString().trim();\n  const cats = (r.all_categories || '').toString().trim();\n  const rating = Number(r.review_rating) || 0;\n  const reviews = Number(r.review_count) || 0;\n  const hasEmail = emails ? 1 : 0;\n  const hasWebsite = r.website ? 1 : 0;\n  const score = Math.round(Math.min(100, rating * Math.log10(reviews + 1) * 12 + hasEmail * 15 + hasWebsite * 5));\n  return { json: { search_rank: r.search_rank ?? '', title: r.title || '', phone: r.phone || '', website: r.website || '', emails, primary_category: r.primary_category || '', categories: cats, review_rating: r.review_rating ?? '', review_count: r.review_count ?? '', status: r.status || '', city: r.city || '', state: r.state || '', address: r.address || '', place_url: r.url || '', lead_score: score, source_keyword: r.source_keyword || '', source_location: r.source_location || '', scraped_at: r.scraped_at || '' } };\n});\nreturn rows.sort((a, b) => b.json.lead_score - a.json.lead_score);"
+      }
+    },
+    {
+      "type": "n8n-nodes-coreclaw.coreClaw",
+      "typeVersion": 2,
+      "position": [
+        440,
+        60
+      ],
+      "id": "c-export-xlsx",
+      "name": "Export Results (xlsx) / 导出Excel",
+      "parameters": {
+        "resource": "workerRun",
+        "operation": "exportResults",
+        "runId": {
+          "mode": "id",
+          "value": "={{ $('Capture callback / 提取回调').item.json.run_id }}",
+          "__rl": true
+        },
+        "format": "xlsx"
+      }
+    },
+    {
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        60
+      ],
+      "id": "c-download-xlsx",
+      "name": "Download xlsx / 下载Excel",
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.download_url || $json.data.download_url }}",
+        "responseFormat": "file",
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        880,
+        -120
+      ],
+      "id": "c-aggregate-rows",
+      "name": "Aggregate rows / 汇总行",
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "rows",
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        -120
+      ],
+      "id": "c-build-email-html",
+      "name": "Build Email HTML / 生成邮件正文",
+      "parameters": {
+        "jsCode": "const rows = ($input.first().json.rows || []).slice();\nconst total = rows.length;\nconst withEmail = rows.filter(r => r.emails).length;\nconst emailRate = total ? Math.round(withEmail * 100 / total) : 0;\nconst top = rows.slice(0, 10);\nconst esc = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');\nconst tr = (r) => `<tr><td>${esc(r.lead_score)}</td><td>${esc(r.title)}</td><td>${esc(r.review_rating)}★ (${esc(r.review_count)})</td><td>${esc(r.emails)||'—'}</td><td>${esc(r.phone)||'—'}</td><td>${esc(r.primary_category)}</td></tr>`;\nconst table = top.length ? `<table border=\"1\" cellpadding=\"6\" cellspacing=\"0\" style=\"border-collapse:collapse;font-size:13px;\"><thead><tr><th>Score</th><th>Title</th><th>Rating</th><th>Email</th><th>Phone</th><th>Category</th></tr></thead><tbody>${top.map(tr).join('')}</tbody></table>` : '<p>No records.</p>';\nconst html = `<h2>CoreClaw Maps Leads — Callback Summary</h2><p>Total leads: <b>${total}</b> · With email: <b>${withEmail}</b> (${emailRate}%)</p>${table}<p style=\"color:#888;font-size:12px;\">Full data attached as gmaps-leads.xlsx.</p>`;\nreturn [{ json: { html, total, withEmail, emailRate } }];"
+      }
+    },
+    {
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1540,
+        -40
+      ],
+      "id": "c-send-email",
+      "name": "Send Email / 发邮件",
+      "parameters": {
+        "sendTo": "={{ $('Capture callback / 提取回调').item.json.recipient_email }}",
+        "subject": "=CoreClaw Maps Leads (callback) — {{ $('Build Email HTML / 生成邮件正文').item.json.total }} leads",
+        "message": "={{ $('Build Email HTML / 生成邮件正文').item.json.html }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "data"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        260
+      ],
+      "id": "c-kick-run",
+      "name": "Kick off a run (demo) / 手动发起run(演示)",
+      "parameters": {}
+    },
+    {
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        260
+      ],
+      "id": "c-run-input",
+      "name": "Run Input / 运行输入",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "keywords",
+              "value": "HVAC Contractors",
+              "type": "string"
+            },
+            {
+              "name": "base_location",
+              "value": "New York, USA",
+              "type": "string"
+            },
+            {
+              "name": "max_results",
+              "value": 5,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-coreclaw.coreClaw",
+      "typeVersion": 2,
+      "position": [
+        440,
+        260
+      ],
+      "id": "c-start-run-async",
+      "name": "Start Run (async+callback) / 异步发起run",
+      "parameters": {
+        "resource": "worker",
+        "operation": "run",
+        "workerId": {
+          "mode": "id",
+          "value": "coreclaw~google-maps-scraper",
+          "__rl": true
+        },
+        "input_json": "={\n  \"keywords\": [{\"keyword\": \"{{ $json.keywords }}\"}],\n  \"base_location\": \"{{ $json.base_location }}\",\n  \"max_results\": {{ $json.max_results }},\n  \"fetch_social_info\": true,\n  \"email_verification\": true\n}",
+        "callback_url": "REPLACE_WITH_YOUR_WEBHOOK_URL",
+        "is_async": true
+      },
+      "notes": "Set callback_url to the CoreClaw Trigger webhook URL above. Localhost won't work without a tunnel (cpolar/frp). / callback_url 填上方 Trigger 的 webhook 地址;本地需内网穿透。"
+    },
+    {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        -220
+      ],
+      "id": "c-note-overview",
+      "name": "Overview / 总览",
+      "parameters": {
+        "content": "## CoreClaw Maps Leads → Callback Export (advanced)\n\nEvent-driven: a worker runs asynchronously with `callback_url`; when CoreClaw POSTs the run-completion callback, this workflow lists results, exports xlsx, and emails a summary with attachment. No polling.\n\n**Requires n8n reachable from the public internet** (or a tunnel like cpolar/frp) so CoreClaw can hit the webhook. For local-only use, see workflow A or B.\n\n## 回调导出(进阶)\n事件驱动:worker 异步跑+callback_url,平台回调时取结果、导 xlsx、发邮件。免轮询。**需 n8n 公网可达或内网穿透**,本地用 A/B。"
+      },
+      "width": 560,
+      "height": 280
+    },
+    {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        440
+      ],
+      "id": "c-note-demo",
+      "name": "Demo branch / 演示支线",
+      "parameters": {
+        "content": "Bottom branch = how to **start** a run that will call back:\n\nManual → Run Input → **Worker > Run** with `callback_url` = the Trigger webhook URL + `is_async: true`.\n\nThe trigger branch (top) fires when CoreClaw calls back. In production you'd start runs from a schedule or upstream system instead.\n\n## 演示如何发起可回调的 run\n下方支线:Worker>Run 设 callback_url=Trigger webhook + is_async:true。生产环境改用定时/上游触发。"
+      },
+      "width": 560,
+      "height": 200
+    },
+    {
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1320,
+        -120
+      ],
+      "id": "c-merge",
+      "name": "Merge (html + attachment) / 合并正文与附件",
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        60
+      ],
+      "id": "16-rename",
+      "name": "Rename attachment / 重命名附件",
+      "parameters": {
+        "jsCode": "// Rename the downloaded xlsx binary to a stable filename for the email attachment\nfor (const item of $input.all()) {\n  if (item.binary?.data) {\n    item.binary.data.fileName = \"gmaps-leads.xlsx\";\n  }\n}\nreturn $input.all();"
+      }
+    }
+  ],
+  "connections": {
+    "CoreClaw Trigger (callback) / 回调触发器": {
+      "main": [
+        [
+          {
+            "node": "Capture callback / 提取回调",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture callback / 提取回调": {
+      "main": [
+        [
+          {
+            "node": "List Results / 取结果",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Export Results (xlsx) / 导出Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Results / 取结果": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Score / 标准化与评分",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Score / 标准化与评分": {
+      "main": [
+        [
+          {
+            "node": "Aggregate rows / 汇总行",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate rows / 汇总行": {
+      "main": [
+        [
+          {
+            "node": "Build Email HTML / 生成邮件正文",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email HTML / 生成邮件正文": {
+      "main": [
+        [
+          {
+            "node": "Merge (html + attachment) / 合并正文与附件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export Results (xlsx) / 导出Excel": {
+      "main": [
+        [
+          {
+            "node": "Download xlsx / 下载Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download xlsx / 下载Excel": {
+      "main": [
+        [
+          {
+            "node": "Rename attachment / 重命名附件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kick off a run (demo) / 手动发起run(演示)": {
+      "main": [
+        [
+          {
+            "node": "Run Input / 运行输入",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Input / 运行输入": {
+      "main": [
+        [
+          {
+            "node": "Start Run (async+callback) / 异步发起run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge (html + attachment) / 合并正文与附件": {
+      "main": [
+        [
+          {
+            "node": "Send Email / 发邮件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rename attachment / 重命名附件": {
+      "main": [
+        [
+          {
+            "node": "Merge (html + attachment) / 合并正文与附件",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    "CoreClaw",
+    "Google Maps",
+    "Callback",
+    "Email",
+    "Advanced"
+  ],
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "coreclaw-public-templates"
+  }
+}

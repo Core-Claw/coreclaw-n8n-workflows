@@ -14,6 +14,18 @@ Built for `n8n-nodes-coreclaw` **0.4.1** (node `description.version: 2`, 34 oper
 
 A → B → C is a deliberate complexity ramp: pick the smallest one that does the job.
 
+## Use as an n8n template source (one-click import)
+
+These three workflows are published as a **self-hosted n8n template feed** so anyone can import them from the in-app **Templates** panel — no manual JSON download. Point your self-hosted n8n at the live Worker:
+
+```bash
+N8N_TEMPLATES_HOST=https://coreclaw-n8n-templates.t445481611.workers.dev
+```
+
+Restart n8n, open the **Templates** panel, and the three CoreClaw workflows appear under **Sales → Lead Generation**. Click → **Use workflow** → it lands in your canvas (credentials stripped — you bind your own on import).
+
+The Worker source and deploy instructions live in [`template-host/`](template-host/). It implements the full `N8N_TEMPLATES_HOST` contract (categories, search, detail, flat import, collections) verified against `api.n8n.io`. Deploy your own fork with `wrangler deploy`.
+
 ## Why this replaced the old pack
 
 The previous 12 workflows in [`legacy-v1/`](legacy-v1/ARCHIVED.md) are archived because:
