@@ -47,7 +47,7 @@
             },
             {
               "name": "recipient_email",
-              "value": "445481611@qq.com",
+              "value": "t445481611@gmail.com",
               "type": "string"
             }
           ]
@@ -166,20 +166,6 @@
       }
     },
     {
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        1320,
-        -40
-      ],
-      "id": "c-merge",
-      "name": "Merge / 合并",
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "complex"
-      }
-    },
-    {
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
@@ -196,8 +182,8 @@
           "attachmentsUi": {
             "attachmentsValues": [
               {
-                "attachmentId": "={{ $json.data }}",
-                "attachmentName": "gmaps-leads.xlsx"
+                "attachmentName": "gmaps-leads.xlsx",
+                "attachmentId": "={{ $(\"Download xlsx / 下载Excel\").item.binary.data }}"
               }
             ]
           }
@@ -378,9 +364,9 @@
       "main": [
         [
           {
-            "node": "Merge / 合并",
+            "node": "Send Email / 发邮件",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -398,24 +384,7 @@
     },
     "Download xlsx / 下载Excel": {
       "main": [
-        [
-          {
-            "node": "Merge / 合并",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge / 合并": {
-      "main": [
-        [
-          {
-            "node": "Send Email / 发邮件",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Kick off a run (demo) / 手动发起run(演示)": {
