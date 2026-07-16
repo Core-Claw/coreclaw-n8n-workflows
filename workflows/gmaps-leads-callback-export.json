@@ -180,10 +180,9 @@
         "message": "={{ $('Build Email HTML / 生成邮件正文').item.json.html }}",
         "options": {
           "attachmentsUi": {
-            "attachmentsValues": [
+            "attachmentsBinary": [
               {
-                "attachmentName": "gmaps-leads.xlsx",
-                "attachmentId": "={{ $(\"Download xlsx / 下载Excel\").item.binary.data }}"
+                "property": "data"
               }
             ]
           }
@@ -297,6 +296,21 @@
       },
       "width": 560,
       "height": 200
+    },
+    {
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1320,
+        -120
+      ],
+      "id": "c-merge",
+      "name": "Merge (html + attachment) / 合并正文与附件",
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      }
     }
   ],
   "connections": {
@@ -364,7 +378,7 @@
       "main": [
         [
           {
-            "node": "Send Email / 发邮件",
+            "node": "Merge (html + attachment) / 合并正文与附件",
             "type": "main",
             "index": 0
           }
@@ -384,7 +398,13 @@
     },
     "Download xlsx / 下载Excel": {
       "main": [
-        []
+        [
+          {
+            "node": "Merge (html + attachment) / 合并正文与附件",
+            "type": "main",
+            "index": 1
+          }
+        ]
       ]
     },
     "Kick off a run (demo) / 手动发起run(演示)": {
@@ -403,6 +423,17 @@
         [
           {
             "node": "Start Run (async+callback) / 异步发起run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge (html + attachment) / 合并正文与附件": {
+      "main": [
+        [
+          {
+            "node": "Send Email / 发邮件",
             "type": "main",
             "index": 0
           }
