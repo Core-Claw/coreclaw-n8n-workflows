@@ -1,0 +1,359 @@
+{
+  "name": "Instagram Posts → Sheets + Email Summary with Excel",
+  "nodes": [
+    {
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e-webhook",
+      "name": "Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ig-posts-sheets-email",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "ig-posts-sheets-email"
+    },
+    {
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "id": "e-input",
+      "name": "Input Config / 输入配置",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "post_urls",
+              "value": "https://www.instagram.com/p/DZ5T2XPllXv/",
+              "type": "string"
+            },
+            {
+              "name": "recipient_email",
+              "value": "t445481611@gmail.com",
+              "type": "string"
+            },
+            {
+              "name": "spreadsheet_id",
+              "value": "1RtA2E-Yf9wvjyJGs7jJZvEyMHKp-NIgbVsIQ_AVhBLQ",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-coreclaw.coreClaw",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "e-run",
+      "name": "Run and Get Results / 运行并取结果",
+      "parameters": {
+        "resource": "worker",
+        "operation": "runAndGetResults",
+        "workerId": {
+          "mode": "id",
+          "value": "coreclaw~instagram-post-scraper",
+          "__rl": true
+        },
+        "input_json": "={\n  \"urls\": [{{ $json.post_urls.split(/[\\s,]+/).filter(Boolean).map(u => \"{\\\"url\\\": \\\"\"+u+\"\\\"}\").join(\",\") }}]\n}",
+        "returnAll": true,
+        "limit": 50
+      }
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "e-code",
+      "name": "Normalize & Score / 标准化与评分",
+      "parameters": {
+        "jsCode": "const rows = [];\nfor (const item of $input.all()) {\n  const d = item.json || {};\n  const likes = Number(d.likesCount) || 0;\n  const comments = Number(d.commentsCount) || 0;\n  const plays = Number(d.videoPlayCount) || Number(d.videoViewCount) || 0;\n  const dur = d.videoDuration || \"\";\n  const likeScore = Math.min(50, likes / 500000 * 50);\n  const commentScore = Math.min(30, comments / 5000 * 30);\n  const playScore = Math.min(20, plays / 2000000 * 20);\n  const score = Math.round(likeScore + commentScore + playScore);\n  const hashtags = Array.isArray(d.hashtags) ? d.hashtags.join(\" \") : (d.hashtags || \"\");\n  rows.push({ json: {\n    engagement_score: score,\n    owner_username: d.ownerUsername || \"\",\n    owner_full_name: d.ownerFullName || \"\",\n    post_type: d.type || \"\",\n    likes_count: likes,\n    comments_count: comments,\n    video_play_count: plays,\n    video_duration: dur,\n    caption: (d.caption || \"\").slice(0, 300),\n    hashtags: hashtags,\n    short_code: d.shortCode || \"\",\n    post_url: d.url || \"\",\n    input_url: d.inputUrl || \"\",\n    timestamp: d.timestamp || \"\",\n    display_url: d.displayUrl || \"\",\n    product_type: d.productType || \"\",\n    is_verified_owner: (d.owner && d.owner.is_verified) ? \"yes\" : \"no\"\n  }});\n}\nrows.sort((a, b) => b.json.engagement_score - a.json.engagement_score);\nrows.forEach((r, i) => { r.json.rank = i + 1; });\nreturn rows;"
+      }
+    },
+    {
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -120
+      ],
+      "id": "e-sheet",
+      "name": "Append Rows to Sheet / 追加到表格",
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "mode": "id",
+          "value": "1RtA2E-Yf9wvjyJGs7jJZvEyMHKp-NIgbVsIQ_AVhBLQ",
+          "__rl": true,
+          "cachedResultName": "Instagram Insights"
+        },
+        "sheetName": {
+          "mode": "name",
+          "value": "Posts",
+          "__rl": true
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-coreclaw.coreClaw",
+      "typeVersion": 2,
+      "position": [
+        880,
+        60
+      ],
+      "id": "e-export",
+      "name": "Export Results (xlsx) / 导出Excel",
+      "parameters": {
+        "resource": "worker",
+        "operation": "exportLastRunResults",
+        "workerId": {
+          "mode": "id",
+          "value": "coreclaw~instagram-post-scraper",
+          "__rl": true
+        },
+        "format": "xlsx",
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        60
+      ],
+      "id": "e-download",
+      "name": "Download xlsx / 下载Excel",
+      "parameters": {
+        "method": "GET",
+        "url": "={{ ($json.download_url || $json.data.download_url) }}",
+        "responseFormat": "file",
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        60
+      ],
+      "id": "e-rename",
+      "name": "Rename attachment / 重命名附件",
+      "parameters": {
+        "jsCode": "const item = $input.first();\nif (item.binary && item.binary.data) { item.binary.data.fileName = \"instagram-posts.xlsx\"; }\nreturn item;"
+      }
+    },
+    {
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        880,
+        240
+      ],
+      "id": "e-agg",
+      "name": "Aggregate rows / 汇总行",
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        240
+      ],
+      "id": "e-html",
+      "name": "Build Email HTML / 生成邮件正文",
+      "parameters": {
+        "jsCode": "const rows = $input.first().json.data || [];\nconst arr = Array.isArray(rows) ? rows : [];\nconst total = arr.length;\nconst totalLikes = arr.reduce((s, r) => s + (Number(r.likes_count) || 0), 0);\nconst totalComments = arr.reduce((s, r) => s + (Number(r.comments_count) || 0), 0);\nconst top = arr.slice(0, 10);\nconst rowsHtml = top.map((r, i) => '<tr><td>'+(i+1)+'</td><td>'+(r.owner_username||\"\")+'</td><td>'+(r.post_type||\"\")+'</td><td>'+(Number(r.likes_count)||0).toLocaleString()+'</td><td>'+(Number(r.comments_count)||0).toLocaleString()+'</td><td>'+(r.short_code||\"\")+'</td></tr>').join(\"\");\nconst html = '<h2>Instagram Posts Report</h2><p><b>'+total+'</b> posts scraped. <b>'+totalLikes.toLocaleString()+'</b> total likes, <b>'+totalComments.toLocaleString()+'</b> total comments.</p><table border=\"1\" cellpadding=\"6\" cellspacing=\"0\" style=\"border-collapse:collapse;font-family:sans-serif;font-size:13px;\"><thead><tr style=\"background:#f0f0f0\"><th>#</th><th>Author</th><th>Type</th><th>Likes</th><th>Comments</th><th>Shortcode</th></tr></thead><tbody>'+rowsHtml+'</tbody></table><p style=\"color:#666;font-size:12px;margin-top:16px;\">Full dataset attached as instagram-posts.xlsx. Generated by CoreClaw + n8n.</p>';\nreturn [{ json: { html, total, totalLikes, totalComments } }];"
+      }
+    },
+    {
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1540,
+        240
+      ],
+      "id": "e-gmail",
+      "name": "Send Summary Email / 发摘要邮件",
+      "parameters": {
+        "sendTo": "={{ $('Input Config / 输入配置').item.json.recipient_email }}",
+        "subject": "=Instagram Posts — {{ $('Build Email HTML / 生成邮件正文').item.json.total }} posts",
+        "message": "={{ $('Build Email HTML / 生成邮件正文').item.json.html }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsValues": [
+              {
+                "attachmentName": "instagram-posts.xlsx",
+                "attachmentId": "={{ $('Rename attachment / 重命名附件').item.binary.data }}"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -100,
+        -100
+      ],
+      "id": "e-note1",
+      "name": "Overview",
+      "parameters": {
+        "content": "## Instagram Posts → Sheets + Email + Excel\n\nScrape post data by URL via CoreClaw, score by engagement, append to **Posts** sheet, and email an HTML Top-10 table + coverage stats with the full dataset attached as .xlsx.\n\nEdit **Input Config**: one or more post URLs (comma/space separated), recipient email."
+      },
+      "width": 420,
+      "height": 200
+    },
+    {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -100,
+        120
+      ],
+      "id": "e-note2",
+      "name": "Creds",
+      "parameters": {
+        "content": "Bind credentials:\n- CoreClaw API (Run + Export)\n- Google Sheets OAuth2 (Append)\n- Gmail OAuth2 (Send Email)\n\nAttachment: Gmail reads binary from **Rename attachment** node (cross-node, property=data)."
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Input Config / 输入配置",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Config / 输入配置": {
+      "main": [
+        [
+          {
+            "node": "Run and Get Results / 运行并取结果",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run and Get Results / 运行并取结果": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Score / 标准化与评分",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Score / 标准化与评分": {
+      "main": [
+        [
+          {
+            "node": "Append Rows to Sheet / 追加到表格",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Export Results (xlsx) / 导出Excel",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate rows / 汇总行",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export Results (xlsx) / 导出Excel": {
+      "main": [
+        [
+          {
+            "node": "Download xlsx / 下载Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download xlsx / 下载Excel": {
+      "main": [
+        [
+          {
+            "node": "Rename attachment / 重命名附件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate rows / 汇总行": {
+      "main": [
+        [
+          {
+            "node": "Build Email HTML / 生成邮件正文",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email HTML / 生成邮件正文": {
+      "main": [
+        [
+          {
+            "node": "Send Summary Email / 发摘要邮件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [],
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "coreclaw-public-templates"
+  },
+  "description": "Scrape Instagram post data by URL, score by engagement, append to Google Sheets, and email an HTML Top-10 table + coverage stats with the full dataset attached as .xlsx."
+}

@@ -35,12 +35,27 @@ const WORKFLOWS = [
     name: "Google Maps Leads via Callback (No Polling) → Email with Excel",
     category: "Lead Generation",
     description: "Event-driven variant for large scrapes: starts an async CoreClaw run with a callback_url, then on completion fetches results, exports .xlsx, and emails the report." },
+  { id: 1004, slug: "instagram-reels-to-sheets",
+    name: "Scrape Instagram Reels to Google Sheets",
+    category: "Marketing",
+    description: "Scrape reels from an Instagram profile via CoreClaw, score each by engagement (likes/followers ratio + comments + plays), append structured rows to a Google Sheet." },
+  { id: 1005, slug: "instagram-posts-sheets-email",
+    name: "Instagram Posts → Sheets + Email Summary with Excel",
+    category: "Marketing",
+    description: "Scrape Instagram post data by URL, score by engagement, append to Google Sheets, and email an HTML Top-10 table + coverage stats with the full dataset attached as .xlsx." },
+  { id: 1006, slug: "instagram-comments-sheets-email",
+    name: "Instagram Comments → Sheets + Email + Sentiment + Excel",
+    category: "Marketing",
+    description: "Scrape comments from Instagram posts/reels, classify each by sentiment (heuristic keyword + emoji match), append to Google Sheets, and email a Top-10 table + sentiment breakdown with the full dataset as .xlsx." },
 ];
 
 const COLLECTIONS = [
   { id: 1, name: "CoreClaw Google Maps Lead Generation", rank: 0,
     description: "Three production-ready workflows that turn CoreClaw's Google Maps scraper into closed business loops: scrape → score → Google Sheets, with optional email + Excel reporting. A → B → C is a deliberate complexity ramp.",
     workflowIds: [1001, 1002, 1003] },
+  { id: 2, name: "CoreClaw Instagram Insights", rank: 1,
+    description: "Three production-ready workflows that turn CoreClaw's Instagram scrapers into closed business loops: scrape reels/posts/comments → score or sentiment-classify → Google Sheets, with email + Excel reporting.",
+    workflowIds: [1004, 1005, 1006] },
 ];
 
 const CREATOR = {
@@ -59,10 +74,16 @@ const CREATED_AT = "2026-07-16T00:00:00.000Z";
 import wfA from "./gmaps-leads-to-sheets.json";
 import wfB from "./gmaps-leads-sheets-email-summary.json";
 import wfC from "./gmaps-leads-callback-export.json";
+import wfD from "./instagram-reels-to-sheets.json";
+import wfE from "./instagram-posts-sheets-email.json";
+import wfF from "./instagram-comments-sheets-email.json";
 const GRAPH_BY_SLUG = {
   "gmaps-leads-to-sheets": wfA,
   "gmaps-leads-sheets-email-summary": wfB,
   "gmaps-leads-callback-export": wfC,
+  "instagram-reels-to-sheets": wfD,
+  "instagram-posts-sheets-email": wfE,
+  "instagram-comments-sheets-email": wfF,
 };
 
 // Node metadata extractor: derives the catalog-metadata shape n8n expects
@@ -182,7 +203,8 @@ export default {
     // GET /templates/categories
     if (seg.join("/") === "templates/categories") {
       const cats = [{ id: 2, name: "Sales", displayName: null, icon: "💼", parent: null },
-                    { id: 37, name: "Lead Generation", displayName: "Lead Generation", icon: "🏷️", parent: { id: 2, name: "Sales", icon: "💼" } }];
+                    { id: 37, name: "Lead Generation", displayName: "Lead Generation", icon: "🏷️", parent: { id: 2, name: "Sales", icon: "💼" } },
+                    { id: 27, name: "Marketing", displayName: null, icon: "📣", parent: null }];
       return json({ categories: cats });
     }
 

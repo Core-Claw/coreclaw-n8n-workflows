@@ -12,7 +12,15 @@
 | [`workflows/gmaps-leads-sheets-email-summary.json`](workflows/gmaps-leads-sheets-email-summary.json) | 同上,再加:导出 run 为 `.xlsx`、下载、发一封 HTML 摘要邮件(Top10 表+邮箱覆盖率统计)带 xlsx 附件。 | `运行并取结果`(轮询) | Google Sheets + Gmail |
 | [`workflows/gmaps-leads-callback-export.json`](workflows/gmaps-leads-callback-export.json) | 事件驱动:异步 run + `callback_url`,平台回调时取结果、导 xlsx、发邮件。免轮询——需要 n8n 公网可达。 | callback webhook | Gmail |
 
-A → B → C 是刻意设计的复杂度递进:选能完成工作的最小那个。
+**Instagram**(抓取 → 评分/情感 → 表格,可选邮件 + Excel):
+
+| 工作流 | 功能 | 运行模式 | 下游 |
+| --- | --- | --- | --- |
+| [`workflows/instagram-reels-to-sheets.json`](workflows/instagram-reels-to-sheets.json) | 抓取某账号的 Reels,按互动度(likes/followers 比 + 评论 + 播放)评分,追加到 Google 表格。 | `Run and Get Results`(轮询) | Google Sheets |
+| [`workflows/instagram-posts-sheets-email.json`](workflows/instagram-posts-sheets-email.json) | 按 URL 抓取帖子数据,评分,追加到表格,并邮件发送 HTML Top10 表 + 互动统计,附完整数据 `.xlsx`。 | `Run and Get Results`(轮询) | Google Sheets + Gmail |
+| [`workflows/instagram-comments-sheets-email.json`](workflows/instagram-comments-sheets-email.json) | 抓取帖子/Reels 评论,按情感(关键词 + emoji 启发式)分类,追加到表格,邮件发送 Top10 + 情感分布,附数据 `.xlsx`。 | `Run and Get Results`(轮询) | Google Sheets + Gmail |
+
+每组都是刻意设计的复杂度递进:选能完成工作的最小那个。
 
 ## 为什么替换旧的工作流包
 

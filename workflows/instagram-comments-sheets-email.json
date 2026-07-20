@@ -1,0 +1,379 @@
+{
+  "name": "Instagram Comments → Sheets + Email + Excel / 评论→表格+邮件+Excel",
+  "nodes": [
+    {
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f-webhook",
+      "name": "Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ig-comments-sheets-email",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "webhookId": "ig-comments-sheets-email"
+    },
+    {
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "id": "f-input",
+      "name": "Input Config / 输入配置",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "post_urls",
+              "value": "https://www.instagram.com/p/DZ5T2XPllXv/",
+              "type": "string"
+            },
+            {
+              "name": "max_results",
+              "value": 20,
+              "type": "number"
+            },
+            {
+              "name": "recipient_email",
+              "value": "t445481611@gmail.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-coreclaw.coreClaw",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "f-run",
+      "name": "Run and Get Results / 运行并取结果",
+      "parameters": {
+        "resource": "worker",
+        "operation": "runAndGetResults",
+        "workerId": {
+          "mode": "id",
+          "value": "coreclaw~instagram-comment-scraper",
+          "__rl": true
+        },
+        "input_json": "={\n  \"directUrls\": [{{ $json.post_urls.split(/[\\s,]+/).filter(Boolean).map(u => \"\\\"\"+u+\"\\\"\").join(\",\") }}],\n  \"max_results\": {{ $json.max_results }}\n}",
+        "returnAll": true,
+        "limit": 50
+      },
+      "credentials": {
+        "coreClawApi": {
+          "id": "1Q3qGQ2v7GmH03DQ",
+          "name": "CoreClaw API"
+        }
+      }
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "f-code",
+      "name": "Normalize & Sentiment / 标准化与情感",
+      "parameters": {
+        "jsCode": "const rows = [];\nconst POS = /(love|amazing|great|awesome|beautiful|nice|good|wow|incredible|fantastic|cool|perfect|best|❤|😍|🔥|👏|💙|💜|🙂|😄|🥰)/i;\nconst NEG = /(hate|bad|terrible|awful|ugly|worst|sad|angry|stupid|disgusting|😡|😭|👎|broken|fail|horr)/i;\nfor (const item of $input.all()) {\n  const d = item.json || {};\n  const text = d.text || '';\n  const likes = Number(d.likesCount) || 0;\n  const replies = Number(d.repliesCount) || 0;\n  let sentiment = 'neutral';\n  if (POS.test(text)) sentiment = 'positive';\n  if (NEG.test(text)) sentiment = 'negative';\n  if (POS.test(text) && NEG.test(text)) sentiment = 'mixed';\n  const owner = d.owner || {};\n  rows.push({ json: {\n    sentiment, likes_count: likes, replies_count: replies,\n    commenter: d.ownerUsername || (owner.username || ''),\n    is_verified: owner.is_verified ? 'yes' : 'no',\n    comment_text: text.slice(0, 500),\n    comment_id: d.id || '', comment_url: d.commentUrl || '',\n    post_url: d.postUrl || '', timestamp: d.timestamp || ''\n  }});\n}\nrows.sort((a, b) => b.json.likes_count - a.json.likes_count);\nrows.forEach((r, i) => { r.json.rank = i + 1; });\nreturn rows;"
+      }
+    },
+    {
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -120
+      ],
+      "id": "f-sheet",
+      "name": "Append Rows to Sheet / 追加到表格",
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "mode": "id",
+          "value": "1RtA2E-Yf9wvjyJGs7jJZvEyMHKp-NIgbVsIQ_AVhBLQ",
+          "__rl": true,
+          "cachedResultName": "Instagram Insights"
+        },
+        "sheetName": {
+          "mode": "name",
+          "value": "Comments",
+          "__rl": true
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "schema": []
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "auigvMexy6zFEBF4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "type": "n8n-nodes-coreclaw.coreClaw",
+      "typeVersion": 2,
+      "position": [
+        880,
+        60
+      ],
+      "id": "f-export",
+      "name": "Export Results (xlsx) / 导出Excel",
+      "parameters": {
+        "resource": "worker",
+        "operation": "exportLastRunResults",
+        "workerId": {
+          "mode": "id",
+          "value": "coreclaw~instagram-comment-scraper",
+          "__rl": true
+        },
+        "format": "xlsx",
+        "options": {}
+      },
+      "credentials": {
+        "coreClawApi": {
+          "id": "1Q3qGQ2v7GmH03DQ",
+          "name": "CoreClaw API"
+        }
+      }
+    },
+    {
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        60
+      ],
+      "id": "f-download",
+      "name": "Download xlsx / 下载Excel",
+      "parameters": {
+        "method": "GET",
+        "url": "={{ ($json.download_url || $json.data.download_url) }}",
+        "responseFormat": "file",
+        "options": {}
+      },
+      "credentials": {}
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        60
+      ],
+      "id": "f-rename",
+      "name": "Rename attachment / 重命名附件",
+      "parameters": {
+        "jsCode": "const item = $input.first();\nif (item.binary && item.binary.data) { item.binary.data.fileName = 'instagram-comments.xlsx'; }\nreturn item;"
+      }
+    },
+    {
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        880,
+        240
+      ],
+      "id": "f-agg",
+      "name": "Aggregate rows / 汇总行",
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      }
+    },
+    {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        240
+      ],
+      "id": "f-html",
+      "name": "Build Email HTML / 生成邮件正文",
+      "parameters": {
+        "jsCode": "const rows = $input.first().json.data || [];\nconst arr = Array.isArray(rows) ? rows : [];\nconst total = arr.length;\nconst pos = arr.filter(r => r.sentiment === 'positive').length;\nconst neg = arr.filter(r => r.sentiment === 'negative').length;\nconst neu = arr.filter(r => r.sentiment === 'neutral').length;\nconst top = arr.slice(0, 10);\nconst rowsHtml = top.map((r, i) => '<tr><td>'+(i+1)+'</td><td>'+r.sentiment+'</td><td>'+(r.likes_count||0)+'</td><td>'+(r.commenter||'')+'</td><td>'+(r.comment_text||'').slice(0,80).replace(/</g,'&lt;')+'</td></tr>').join('');\nconst html = '<h2>Instagram Comments Report</h2><p><b>'+total+'</b> comments scraped. Sentiment: <b>'+pos+'</b> positive, <b>'+neg+'</b> negative, <b>'+neu+'</b> neutral.</p><table border=\"1\" cellpadding=\"6\" cellspacing=\"0\" style=\"border-collapse:collapse;font-family:sans-serif;font-size:13px;\"><thead><tr style=\"background:#f0f0f0\"><th>#</th><th>Sentiment</th><th>Likes</th><th>Commenter</th><th>Comment</th></tr></thead><tbody>'+rowsHtml+'</tbody></table><p style=\"color:#666;font-size:12px;margin-top:16px;\">Full dataset attached as instagram-comments.xlsx. Sentiment is a heuristic keyword/emoji match, not ML. Generated by CoreClaw + n8n.</p>';\nreturn [{ json: { html, total, pos, neg, neu } }];"
+      }
+    },
+    {
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1540,
+        240
+      ],
+      "id": "f-gmail",
+      "name": "Send Summary Email / 发摘要邮件",
+      "parameters": {
+        "sendTo": "={{ $('Input Config / 输入配置').item.json.recipient_email }}",
+        "subject": "=Instagram Comments — {{ $('Build Email HTML / 生成邮件正文').item.json.total }} comments ({{ $('Build Email HTML / 生成邮件正文').item.json.pos }} positive)",
+        "message": "={{ $('Build Email HTML / 生成邮件正文').item.json.html }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsValues": [
+              {
+                "attachmentName": "instagram-comments.xlsx",
+                "attachmentId": "={{ $('Rename attachment / 重命名附件').item.binary.data }}"
+              }
+            ]
+          }
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "FzED6PyCF14CVkwQ",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -100,
+        -100
+      ],
+      "id": "f-note1",
+      "name": "Overview",
+      "parameters": {
+        "content": "## Instagram Posts → Sheets + Email + Excel\n\nScrape post data by URL via CoreClaw, score by engagement, append to **Posts** sheet, and email an HTML Top-10 table + coverage stats with the full dataset attached as .xlsx.\n\nEdit **Input Config**: one or more post URLs (comma/space separated), recipient email."
+      },
+      "width": 420,
+      "height": 200
+    },
+    {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -100,
+        120
+      ],
+      "id": "f-note2",
+      "name": "Creds",
+      "parameters": {
+        "content": "Bind credentials:\n- CoreClaw API (Run + Export)\n- Google Sheets OAuth2 (Append)\n- Gmail OAuth2 (Send Email)\n\nAttachment: Gmail reads binary from **Rename attachment** node (cross-node, property=data)."
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Input Config / 输入配置",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Config / 输入配置": {
+      "main": [
+        [
+          {
+            "node": "Run and Get Results / 运行并取结果",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run and Get Results / 运行并取结果": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Sentiment / 标准化与情感",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export Results (xlsx) / 导出Excel": {
+      "main": [
+        [
+          {
+            "node": "Download xlsx / 下载Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download xlsx / 下载Excel": {
+      "main": [
+        [
+          {
+            "node": "Rename attachment / 重命名附件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate rows / 汇总行": {
+      "main": [
+        [
+          {
+            "node": "Build Email HTML / 生成邮件正文",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email HTML / 生成邮件正文": {
+      "main": [
+        [
+          {
+            "node": "Send Summary Email / 发摘要邮件",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Sentiment / 标准化与情感": {
+      "main": [
+        [
+          {
+            "node": "Append Rows to Sheet / 追加到表格",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Export Results (xlsx) / 导出Excel",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate rows / 汇总行",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

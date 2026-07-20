@@ -18,7 +18,15 @@ Built for `n8n-nodes-coreclaw` **0.4.1** (node `description.version: 2`, 34 oper
 | [`workflows/gmaps-leads-sheets-email-summary.json`](workflows/gmaps-leads-sheets-email-summary.json) | Same, plus export the run as `.xlsx`, download it, and email an HTML summary (Top-10 table + email-coverage stats) with the xlsx attached. | `Run and Get Results` (poll) | Google Sheets + Gmail |
 | [`workflows/gmaps-leads-callback-export.json`](workflows/gmaps-leads-callback-export.json) | Event-driven: run async with `callback_url`, and on CoreClaw's callback fetch results, export xlsx, email it. No polling — needs n8n reachable from the internet. | callback webhook | Gmail |
 
-A → B → C is a deliberate complexity ramp: pick the smallest one that does the job.
+**Instagram** (scrape → score/sentiment → Sheets, with optional email + Excel):
+
+| Workflow | What it does | Run mode | Downstream |
+| --- | --- | --- | --- |
+| [`workflows/instagram-reels-to-sheets.json`](workflows/instagram-reels-to-sheets.json) | Scrape reels from a profile, score each by engagement (likes/followers ratio + comments + plays), append to a Google Sheet. | `Run and Get Results` (poll) | Google Sheets |
+| [`workflows/instagram-posts-sheets-email.json`](workflows/instagram-posts-sheets-email.json) | Scrape post data by URL, score by engagement, append to Sheets, and email an HTML Top-10 table + coverage stats with the full dataset attached as `.xlsx`. | `Run and Get Results` (poll) | Google Sheets + Gmail |
+| [`workflows/instagram-comments-sheets-email.json`](workflows/instagram-comments-sheets-email.json) | Scrape comments from posts/reels, classify each by sentiment (heuristic keyword + emoji match), append to Sheets, and email a Top-10 table + sentiment breakdown with the dataset as `.xlsx`. | `Run and Get Results` (poll) | Google Sheets + Gmail |
+
+Each group is a deliberate complexity ramp: pick the smallest one that does the job.
 
 ## Use as an n8n template source (one-click import)
 
@@ -83,6 +91,16 @@ Both polling workflows were executed end-to-end against a live CoreClaw account 
 | A — gmaps-leads-to-sheets | ✅ `success` — 5 records scraped, scored, appended to a Google Sheet (`Leads` tab, 20 columns). |
 | B — gmaps-leads-sheets-email-summary | ✅ `success` — same scrape + Sheet append, plus `.xlsx` exported (64 KB) and emailed to the configured recipient with an HTML Top-10 summary. |
 | C — gmaps-leads-callback-export | Imported and activated; runtime requires a public/tunnel webhook URL (not exercised locally). See the workflow's sticky notes. |
+
+Instagram workflows were also executed end-to-end (worker `coreclaw/instagram-post-scraper` and `instagram-comment-scraper`, post `https://www.instagram.com/p/DZ5T2XPllXv/`):
+
+| Workflow | Result |
+| --- | --- |
+| D — instagram-reels-to-sheets | ✅ `success` — workflow logic verified; the reel-scraper worker returned 0 rows for the test profile on the day (worker-side availability), so the pipeline ran clean with an empty dataset. |
+| E — instagram-posts-sheets-email | ✅ `success` — post scraped + scored (engagement_score 28), appended to the **Posts** sheet, `.xlsx` exported (12.6 KB) and emailed with an HTML Top-10 summary. |
+| F — instagram-comments-sheets-email | ✅ `success` — 20 comments scraped + sentiment-classified (5 positive / rest neutral/negative), appended to the **Comments** sheet, `.xlsx` exported (239 KB) and emailed with a sentiment breakdown. |
+
+Google Sheet created by the runs: a spreadsheet titled **Instagram Insights** with **Reels**, **Posts**, and **Comments** tabs (19/18/11 column headers respectively).
 
 Google Sheet created by the run: a spreadsheet titled **CoreClaw Maps Leads** with a **Leads** sheet and a 20-column header row (`lead_score, search_rank, title, phone, website, emails, primary_category, categories, review_rating, review_count, status, city, state, address, latitude, longitude, place_url, source_keyword, source_location, scraped_at`).
 
