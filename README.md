@@ -1,8 +1,14 @@
-# CoreClaw n8n Workflows (v2)
+<p align="center">
+  <img src="./assets/readme/hero.svg" width="100%" alt="CoreClaw n8n Workflows: scrape → score → Google Sheets → email. Three production templates on CoreClaw v2.">
+</p>
 
 Production-ready n8n workflow templates that turn [CoreClaw](https://coreclaw.com)'s Google Maps scraper into closed business loops: scrape → score → **write to Google Sheets** → **email a summary with an Excel attachment**.
 
 Built for `n8n-nodes-coreclaw` **0.4.1** (node `description.version: 2`, 34 operations on `/api/v2/`). Verified end-to-end on n8n **2.30.4**.
+
+<p align="center">
+  <img src="./assets/readme/section-what.svg" width="100%" alt="01 Three workflows forming a deliberate complexity ramp.">
+</p>
 
 ## What's here
 
@@ -113,3 +119,9 @@ During validation, the **Run and Get Results** node failed with `NodeOperationEr
 ## License
 
 MIT — same as the upstream node package.
+
+---
+
+<p align="center">
+  <img src="./assets/readme/signature.svg" width="100%" alt="README made with beautify-github-readme">
+</p>
