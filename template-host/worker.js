@@ -38,7 +38,7 @@ const WORKFLOWS = [
   { id: 1004, slug: "instagram-reels-to-sheets",
     name: "Scrape Instagram Reels to Google Sheets",
     category: "Marketing",
-    description: "Scrape reels from an Instagram profile via CoreClaw, score each by engagement (likes/followers ratio + comments + plays), append structured rows to a Google Sheet." },
+    description: "Scrape reel data by Reel URL via CoreClaw, score each by engagement (likes + comments + plays on a viral-reel scale), append structured rows to a Google Sheet." },
   { id: 1005, slug: "instagram-posts-sheets-email",
     name: "Instagram Posts → Sheets + Email Summary with Excel",
     category: "Marketing",

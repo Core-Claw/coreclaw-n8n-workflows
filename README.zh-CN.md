@@ -16,7 +16,7 @@
 
 | 工作流 | 功能 | 运行模式 | 下游 |
 | --- | --- | --- | --- |
-| [`workflows/instagram-reels-to-sheets.json`](workflows/instagram-reels-to-sheets.json) | 抓取某账号的 Reels,按互动度(likes/followers 比 + 评论 + 播放)评分,追加到 Google 表格。 | `Run and Get Results`(轮询) | Google Sheets |
+| [`workflows/instagram-reels-to-sheets.json`](workflows/instagram-reels-to-sheets.json) | 按 Reel URL 抓取 reel 数据,按互动度(likes + 评论 + 播放,按爆款 reel 量级)评分,追加到 Google 表格。 | `Run and Get Results`(轮询) | Google Sheets |
 | [`workflows/instagram-posts-sheets-email.json`](workflows/instagram-posts-sheets-email.json) | 按 URL 抓取帖子数据,评分,追加到表格,并邮件发送 HTML Top10 表 + 互动统计,附完整数据 `.xlsx`。 | `Run and Get Results`(轮询) | Google Sheets + Gmail |
 | [`workflows/instagram-comments-sheets-email.json`](workflows/instagram-comments-sheets-email.json) | 抓取帖子/Reels 评论,按情感(关键词 + emoji 启发式)分类,追加到表格,邮件发送 Top10 + 情感分布,附数据 `.xlsx`。 | `Run and Get Results`(轮询) | Google Sheets + Gmail |
 
@@ -73,6 +73,16 @@ worker 结果字段 → 表格列见 [`docs/field-map.md`](docs/field-map.md)。
 | A — gmaps-leads-to-sheets | ✅ `success` — 抓 5 条,评分,追加到 Google 表格(`Leads` 工作表,20 列)。 |
 | B — gmaps-leads-sheets-email-summary | ✅ `success` — 同样抓取+写表,另导出 `.xlsx`(64KB)发到收件邮箱,正文 HTML 含 Top10 摘要。 |
 | C — gmaps-leads-callback-export | 已导入并激活;运行需公网/内网穿透 webhook 地址(本地未实跑)。见工作流 sticky note。 |
+
+Instagram 工作流也已端到端跑通(worker `coreclaw/instagram-reel-scraper`、`instagram-post-scraper`、`instagram-comment-scraper`,帖子 `https://www.instagram.com/p/DZ5T2XPllXv/`):
+
+| 工作流 | 结果 |
+| --- | --- |
+| D — instagram-reels-to-sheets | ✅ `success` — 按 Reel URL 抓取(worker `coreclaw/instagram-reel-scraper`),评分(engagement_score 62),追加到 **Reels** 工作表(349 万赞的 reel)。 |
+| E — instagram-posts-sheets-email | ✅ `success` — 帖子抓取+评分(28),追加到 **Posts** 表,导出 `.xlsx`(12.6KB)邮件发送 HTML Top10 摘要。 |
+| F — instagram-comments-sheets-email | ✅ `success` — 20 条评论抓取+情感分类(5 positive),追加到 **Comments** 表,导出 `.xlsx`(239KB)邮件发送 Top10 + 情感分布。 |
+
+运行创建的 Google 表格:名为 **Instagram Insights**,含 **Reels** / **Posts** / **Comments** 三个工作表(分别 18/18/11 列表头)。
 
 运行创建的 Google 表格:名为 **CoreClaw Maps Leads**,含 **Leads** 工作表,20 列表头(`lead_score, search_rank, title, phone, website, emails, primary_category, categories, review_rating, review_count, status, city, state, address, latitude, longitude, place_url, source_keyword, source_location, scraped_at`)。
 

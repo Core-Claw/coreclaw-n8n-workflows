@@ -31,23 +31,8 @@
         "assignments": {
           "assignments": [
             {
-              "name": "profile_url",
-              "value": "https://www.instagram.com/espn",
-              "type": "string"
-            },
-            {
-              "name": "num_of_posts",
-              "value": 5,
-              "type": "number"
-            },
-            {
-              "name": "start_date",
-              "value": "",
-              "type": "string"
-            },
-            {
-              "name": "end_date",
-              "value": "",
+              "name": "reel_urls",
+              "value": "https://www.instagram.com/reel/C5Rdyj_q7YN/",
               "type": "string"
             },
             {
@@ -74,10 +59,10 @@
         "operation": "runAndGetResults",
         "workerId": {
           "mode": "id",
-          "value": "coreclaw~instagram-all-reel-scraper",
+          "value": "coreclaw~instagram-reel-scraper",
           "__rl": true
         },
-        "input_json": "={\n  \"url\": [{\n    \"url\": \"{{ $json.profile_url }}\",\n    \"num_of_posts\": \"{{ $json.num_of_posts }}\",\n    \"start_date\": \"{{ $json.start_date }}\",\n    \"end_date\": \"{{ $json.end_date }}\",\n    \"posts_to_not_include\": \"\"\n  }]\n}",
+        "input_json": "={\n  \"urls\": [{\"url\": \"{{ $json.reel_urls }}\"}]\n}",
         "returnAll": true,
         "limit": 50
       }
@@ -92,7 +77,7 @@
       "id": "d-code",
       "name": "Normalize & Score / 标准化与评分",
       "parameters": {
-        "jsCode": "const rows = [];\nfor (const item of $input.all()) {\n  const d = item.json || {};\n  const likes = Number(d.likes) || 0;\n  const comments = Number(d.num_comments) || 0;\n  const followers = Number(d.followers) || 0;\n  const plays = Number(d.video_play_count) || Number(d.video_play_count === \"\" ? 0 : d.video_play_count) || 0;\n  const dur = (d.videos_duration && d.videos_duration[0] && d.videos_duration[0].video_duration) || \"\";\n  const engRate = followers > 0 ? (likes / followers) : 0;\n  // engagement score 0-100: like-rate vs followers (40) + comment volume (35) + play signal (25)\n  const likeScore = Math.min(40, engRate * 400);\n  const commentScore = Math.min(35, comments / 50 * 35);\n  const playScore = Math.min(25, plays / 100000 * 25);\n  const score = Math.round(likeScore + commentScore + playScore);\n  const ts = d.date_posted ? new Date(Number(d.date_posted) * 1000).toISOString() : \"\";\n  rows.push({ json: {\n    engagement_score: score,\n    engagement_rate: (engRate * 100).toFixed(2) + \"%\",\n    user_posted: d.user_posted || \"\",\n    followers: followers,\n    likes: likes,\n    num_comments: comments,\n    video_play_count: plays,\n    video_duration: dur,\n    description: (d.description || \"\").slice(0, 200),\n    hashtags: Array.isArray(d.hashtags) ? d.hashtags.join(\" \") : (d.hashtags || \"\"),\n    is_verified: d.is_verified ? \"yes\" : \"no\",\n    is_paid_partnership: d.is_paid_partnership ? \"yes\" : \"no\",\n    date_posted: ts,\n    shortcode: d.shortcode || \"\",\n    reel_url: d.url || \"\",\n    thumbnail: d.thumbnail || \"\",\n    profile_url: d.profile_url || \"\",\n    posts_count: Number(d.posts_count) || 0\n  }});\n}\nrows.sort((a, b) => b.json.engagement_score - a.json.engagement_score);\nrows.forEach((r, i) => { r.json.rank = i + 1; });\nreturn rows;\n"
+        "jsCode": "const rows = [];\nfor (const item of $input.all()) {\n  const d = item.json || {};\n  const likes = Number(d.likesCount) || 0;\n  const comments = Number(d.commentsCount) || 0;\n  const plays = Number(d.videoPlayCount) || Number(d.videoViewCount) || 0;\n  const dur = d.videoDuration || \"\";\n  // score 0-100: likes (50) + comments (30) + plays (20); viral reel scale\n  const likeScore = Math.min(50, likes / 2000000 * 50);\n  const commentScore = Math.min(30, comments / 20000 * 30);\n  const playScore = Math.min(20, plays / 5000000 * 20);\n  const score = Math.round(likeScore + commentScore + playScore);\n  const hashtags = Array.isArray(d.hashtags) ? d.hashtags.join(\" \") : (d.hashtags || \"\");\n  rows.push({ json: {\n    engagement_score: score,\n    owner_username: d.ownerUsername || \"\",\n    owner_full_name: d.ownerFullName || \"\",\n    type: d.type || \"\",\n    likes_count: likes,\n    comments_count: comments,\n    video_play_count: plays,\n    video_duration: dur,\n    caption: (d.caption || \"\").slice(0, 300),\n    hashtags: hashtags,\n    short_code: d.shortCode || \"\",\n    reel_url: d.url || \"\",\n    input_url: d.inputUrl || \"\",\n    timestamp: d.timestamp || \"\",\n    display_url: d.displayUrl || \"\",\n    product_type: d.productType || \"\",\n    video_url: d.videoUrl || \"\"\n  }});\n}\nrows.sort((a, b) => b.json.engagement_score - a.json.engagement_score);\nrows.forEach((r, i) => { r.json.rank = i + 1; });\nreturn rows;"
       }
     },
     {
@@ -135,7 +120,7 @@
       "id": "d-note1",
       "name": "Overview",
       "parameters": {
-        "content": "## Instagram Reels → Google Sheets\n\nScrape reels from a profile via CoreClaw, score each by engagement (likes/followers ratio + comments + plays), append to the **Reels** sheet.\n\nEdit **Input Config**: profile URL, max reels, optional date range."
+        "content": "## Instagram Reels → Google Sheets\n\nScrape reel data by Reel URL via CoreClaw, score each by engagement (likes + comments + plays on a viral-reel scale), append to the **Reels** sheet.\n\nEdit **Input Config**: one or more Reel URLs (comma/space separated)."
       },
       "width": 400,
       "height": 200
@@ -211,5 +196,5 @@
     "templateCredsSetupCompleted": false,
     "instanceId": "coreclaw-public-templates"
   },
-  "description": "Scrape reels from an Instagram profile via CoreClaw, score each by engagement (likes/followers ratio + comments + plays), append structured rows to a Google Sheet."
+  "description": "Scrape reel data by Reel URL via CoreClaw, score each by engagement (likes + comments + plays on a viral-reel scale), append structured rows to a Google Sheet."
 }

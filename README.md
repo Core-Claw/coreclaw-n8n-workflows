@@ -22,7 +22,7 @@ Built for `n8n-nodes-coreclaw` **0.4.1** (node `description.version: 2`, 34 oper
 
 | Workflow | What it does | Run mode | Downstream |
 | --- | --- | --- | --- |
-| [`workflows/instagram-reels-to-sheets.json`](workflows/instagram-reels-to-sheets.json) | Scrape reels from a profile, score each by engagement (likes/followers ratio + comments + plays), append to a Google Sheet. | `Run and Get Results` (poll) | Google Sheets |
+| [`workflows/instagram-reels-to-sheets.json`](workflows/instagram-reels-to-sheets.json) | Scrape reel data by Reel URL, score each by engagement (likes + comments + plays on a viral-reel scale), append to a Google Sheet. | `Run and Get Results` (poll) | Google Sheets |
 | [`workflows/instagram-posts-sheets-email.json`](workflows/instagram-posts-sheets-email.json) | Scrape post data by URL, score by engagement, append to Sheets, and email an HTML Top-10 table + coverage stats with the full dataset attached as `.xlsx`. | `Run and Get Results` (poll) | Google Sheets + Gmail |
 | [`workflows/instagram-comments-sheets-email.json`](workflows/instagram-comments-sheets-email.json) | Scrape comments from posts/reels, classify each by sentiment (heuristic keyword + emoji match), append to Sheets, and email a Top-10 table + sentiment breakdown with the dataset as `.xlsx`. | `Run and Get Results` (poll) | Google Sheets + Gmail |
 
@@ -96,7 +96,7 @@ Instagram workflows were also executed end-to-end (worker `coreclaw/instagram-po
 
 | Workflow | Result |
 | --- | --- |
-| D — instagram-reels-to-sheets | ✅ `success` — workflow logic verified; the reel-scraper worker returned 0 rows for the test profile on the day (worker-side availability), so the pipeline ran clean with an empty dataset. |
+| D — instagram-reels-to-sheets | ✅ `success` — reel scraped by URL (worker `coreclaw/instagram-reel-scraper`), scored (engagement_score 62), appended to the **Reels** sheet (3.49M likes reel). |
 | E — instagram-posts-sheets-email | ✅ `success` — post scraped + scored (engagement_score 28), appended to the **Posts** sheet, `.xlsx` exported (12.6 KB) and emailed with an HTML Top-10 summary. |
 | F — instagram-comments-sheets-email | ✅ `success` — 20 comments scraped + sentiment-classified (5 positive / rest neutral/negative), appended to the **Comments** sheet, `.xlsx` exported (239 KB) and emailed with a sentiment breakdown. |
 
